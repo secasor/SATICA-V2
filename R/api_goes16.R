@@ -1,142 +1,201 @@
 # ==============================================================================
-# ESCANEO DINÁMICO DE HUMO SATÉLITE GOES-16 (SATICA V3.0)
+# ESCANEO DINÁMICO VÍA NASA FIRMS (REEMPLAZO DE GEE GOES-16)
+# SATICA V2.0 — GitHub Actions Edition
 # ==============================================================================
-# Propósito: Utilizar la colección GOES-16 MCMIPF (Banda 7 InfraRojo Cercano) 
-# en Google Earth Engine para escanear en tiempo casi real (cada 15 min) 
-# anomalías termales dinámicas sobre los ingenios.
+# Propósito: Descargar telemetría térmica en tiempo casi real de los satélites
+# VIIRS (Suomi-NPP, NOAA-20) y MODIS (Terra/Aqua) vía NASA FIRMS Area API.
+# Cruza los focos detectados contra el shapefile maestro de caña (SOR_OK).
+# Genera: data_master/GOES16_Alertas.csv (compatible con centinela_satelital.R)
+# Sin dependencia de GEE, rgee ni Python. Solo HTTP + sf.
 # ==============================================================================
 
 library(sf)
 library(dplyr)
+library(httr)
+library(readr)
 
-# Intentar cargar rgee (Google Earth Engine for R)
-if (!requireNamespace("rgee", quietly = TRUE)) stop("El paquete 'rgee' no está instalado. Ejecute rgee::ee_install()")
-reticulate::use_condaenv("r-reticulate", required = TRUE)
+sf_use_s2(FALSE)
+options(warn = -1)
 
-library(rgee)
+message("🛰️  Iniciando escaneo FIRMS (reemplazo GOES-16)...")
 
-message("🌍 Inicializando conexión con Google Earth Engine para GOES-16...")
-# Bypass del validador de expiración (igual que en Sentinel-2)
-ee <- reticulate::import("ee")
-ee$Initialize(project = "satica-v2")
+# --- Credenciales -------------------------------------------------------
+# La llave se toma del secreto GitHub Actions (o del archivo si se corre local)
+NASA_MAP_KEY <- Sys.getenv("NASA_FIRMS_KEY")
+if (NASA_MAP_KEY == "") {
+  # Fallback: llave incluida en el script (actualizar si expira)
+  NASA_MAP_KEY <- "67796e55c1024f4beac823ff61ffa800"
+  message("  ℹ️  Usando llave NASA FIRMS embebida (fallback local).")
+}
 
-message("🧭 Cargando zona de escrutinio para GOES-16...")
-cana_path <- normalizePath(list.files("capas", pattern = "SOR_OK\\.shp$", full.names = TRUE)[1])
-if (is.na(cana_path)) stop("No capa de caña disponible.")
+# --- Área de interés — Valle del Cauca [W, S, E, N] ---------------------
+bbox <- "-77.5,3.5,-75.5,4.5"
+dias <- "1"  # Últimas 24 horas (máx resolución temporal disponible)
 
-cana <- st_read(cana_path, quiet = TRUE) %>%
-  janitor::clean_names() %>%
-  st_transform(4326) %>%
-  mutate(
-    hda_raw = toupper(stringr::str_replace_all(as.character(dplyr::coalesce(!!!dplyr::select(st_drop_geometry(.), dplyr::matches("^hda$|^cod$|^codigo$")))), "[^0-9A-Za-z_]", "")),
-    ing_raw = toupper(as.character(dplyr::coalesce(!!!dplyr::select(st_drop_geometry(.), dplyr::matches("^ing$|^ingenio$"))))),
-    ing_clean = dplyr::case_when(
-      grepl("INCAUCA", ing_raw) ~ "CA",
-      grepl("MAYAGUEZ", ing_raw) ~ "MY",
-      grepl("MARIA LUISA", ing_raw) ~ "ML",
-      grepl("CASTILLA", ing_raw) ~ "CC",
-      grepl("PROVIDENCIA", ing_raw) ~ "PR",
-      grepl("MANUELITA", ing_raw) ~ "MN",
-      grepl("PICHICHI", ing_raw) ~ "PC",
-      grepl("CABA", ing_raw) ~ "CB",
-      grepl("RIOPAILA", ing_raw) ~ "RP",
-      TRUE ~ ing_raw
-    ),
-    cod_unico = paste(ing_clean, stringr::str_pad(hda_raw, width = 6, side = "left", pad = "0"), sep = "_"),
-    hda_nombre = toupper(as.character(dplyr::coalesce(!!!dplyr::select(st_drop_geometry(.), dplyr::matches("^nombre_hda$|^nombre$")))))
-  )
+# --- URLs autenticadas NASA FIRMS Area API -----------------------------------
+mk <- NASA_MAP_KEY
+url_snpp  <- sprintf("https://firms.modaps.eosdis.nasa.gov/api/area/csv/%s/VIIRS_SNPP_NRT/%s/%s",  mk, bbox, dias)
+url_noaa20 <- sprintf("https://firms.modaps.eosdis.nasa.gov/api/area/csv/%s/VIIRS_NOAA20_NRT/%s/%s", mk, bbox, dias)
+url_modis <- sprintf("https://firms.modaps.eosdis.nasa.gov/api/area/csv/%s/MODIS_NRT/%s/%s",        mk, bbox, dias)
 
+descargar_seguro <- function(url, fuente) {
+  tryCatch({
+    res <- GET(url, timeout(30))
+    if (status_code(res) == 200) {
+      txt <- content(res, "text", encoding = "UTF-8")
+      if (nchar(trimws(txt)) < 10) return(NULL)
+      df <- suppressMessages(read_csv(txt, show_col_types = FALSE))
+      message(sprintf("  ✅ %s: %d focos descargados.", fuente, nrow(df)))
+      return(df)
+    } else {
+      message(sprintf("  ⚠️  %s: HTTP %d", fuente, status_code(res)))
+      return(NULL)
+    }
+  }, error = function(e) {
+    message(sprintf("  ⚠️  %s: Error de red — %s", fuente, e$message))
+    return(NULL)
+  })
+}
 
-caja_cana <- sf_as_ee(st_as_sfc(st_bbox(cana)))
+message("📡 Consultando órbitas satelitales...")
+fuegos_snpp   <- descargar_seguro(url_snpp,   "Suomi-NPP (VIIRS)")
+fuegos_noaa20 <- descargar_seguro(url_noaa20, "NOAA-20  (VIIRS)")
+fuegos_modis  <- descargar_seguro(url_modis,  "Terra/Aqua (MODIS)")
 
-# 1. PARAMETRIZACIÓN GOES-16
-# COPERNICUS es Sentinel. Para GOES-16: NOAA/GOES/16/MCMIPF
-# Analizamos los últimos 60 minutos (resolución temporal altísima)
-ahora <- Sys.time()
-hora_inicio <- ahora - (60 * 60) # 1 hora atrás
-hora_fin    <- ahora
+# --- Consolidación ---------------------------------------------------------
+lista <- list(fuegos_snpp, fuegos_noaa20, fuegos_modis)
+lista <- lapply(lista, function(df) {
+  if (!is.null(df) && "confidence" %in% names(df)) {
+    df$confidence <- as.character(df$confidence)
+  }
+  return(df)
+})
+fuegos_master <- bind_rows(lista[!sapply(lista, is.null)])
 
-fecha_str_ini <- format(hora_inicio, "%Y-%m-%dT%H:%M:%S", tz = "UTC")
-fecha_str_fin <- format(hora_fin, "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+if (!dir.exists("data_master")) dir.create("data_master", recursive = TRUE)
 
-message(sprintf("🛰️ Sondando Órbita GOES-16 (Última hora UTC: %s a %s)...", fecha_str_ini, fecha_str_fin))
+alertas_vacio <- data.frame(
+  cod_unico   = character(),
+  hda_nombre  = character(),
+  Mask_GOES   = numeric(),
+  GOES_Fuego  = logical(),
+  Estado_GOES = character(),
+  stringsAsFactors = FALSE
+)
 
-# NOAA/GOES/16/FDCF (Fire Detection and Characterization)
-# El producto FDC (Fire Detection) es mejor para fuego que MCMIPF crudo
-goes_col <- ee$ImageCollection("NOAA/GOES/16/FDCF")$
-  filterBounds(caja_cana)$
-  filterDate(fecha_str_ini, fecha_str_fin)
-
-cuantas_imagenes <- goes_col$size()$getInfo()
-if (cuantas_imagenes == 0) {
-  message("✅ GOES-16: No hay paso satelital en la última hora. Abortando rastreo secundario.")
-  if (!dir.exists("data_master")) dir.create("data_master")
-  write.csv(data.frame(cod_unico = character(), GOES_Fuego = logical(), Estado_GOES = character()), 
-            "data_master/GOES16_Alertas.csv", row.names = FALSE)
+if (nrow(fuegos_master) == 0) {
+  message("✅ FIRMS: Sin anomalías térmicas reportadas en Valle del Cauca (últimas 24h).")
+  write.csv(alertas_vacio, "data_master/GOES16_Alertas.csv", row.names = FALSE)
   return(invisible(NULL))
 }
 
-# La colección FDC tiene la banda "Mask"
-# Valores típicos de Mask: 10,11,12,13,14,15,30,31,32,33,34,35 (Fire detected)
-# Reducimos a Máximo temporal de la última hora
-goes_fuego_max <- goes_col$select("Mask")$max()
+# --- Filtrado por confianza ------------------------------------------------
+# VIIRS: "l"=baja, "n"=nominal, "h"=alta | MODIS: 0-100 (>=60 = confiable)
+fuegos_conf <- fuegos_master %>%
+  filter(
+    (confidence %in% c("n", "h")) |           # VIIRS nominal/alta
+    suppressWarnings(!is.na(as.numeric(confidence)) & as.numeric(confidence) >= 60)  # MODIS >=60%
+  )
 
-# Extraemos valores sobre los polígonos
-message("🔥 Cruzando anomalías termomecánicas dinámicas contra lotes...")
-ee_cana <- sf_as_ee(cana)
+message(sprintf("🔍 Filtrando: %d de %d focos con confianza aceptable.",
+                nrow(fuegos_conf), nrow(fuegos_master)))
 
-estadisticas_goes <- goes_fuego_max$reduceRegions(
-  collection = ee_cana,
-  reducer    = ee$Reducer$max(), # Buscamos si ALGÚN pixel toca la suerte
-  scale      = 2000              # Resolución espacial nativa de GOES (~2km)
-)
-
-json_goes <- tryCatch({
-  estadisticas_goes$getInfo()
-}, error = function(e) {
-  message("   ⚠️ Error en extracción zonal GEE GOES: ", e$message)
-  list(features = list())
-})
-
-# Extraer y filtrar
-if (length(json_goes$features) > 0) {
-  extraccion_alertas <- bind_rows(lapply(json_goes$features, function(x) {
-    props <- x$properties
-    
-    # max = Valor de la máscara FDC
-    val_max <- if (!is.null(props$max)) as.numeric(props$max) else NA_real_
-    
-    # 10=Processed, 11=Saturated, 12=Cloud, 13=HighProb, 14=MediumProb, 15=LowProb
-    # Nos centramos en códigos 10 al 35 como "Posible Fuego" según la tabla NOAA
-    alarma <- !is.na(val_max) && (val_max >= 10 && val_max <= 35)
-    
-    data.frame(
-      cod_unico   = if (!is.null(props$cod_unico)) props$cod_unico else NA_character_,
-      hda_nombre  = if (!is.null(props$hda_nombre)) props$hda_nombre else NA_character_,
-      Mask_GOES   = val_max,
-      GOES_Fuego  = alarma,
-      Estado_GOES = ifelse(alarma, "Fuego Confirmado (Dinámico)", "Normal"),
-      stringsAsFactors = FALSE
-    )
-  }))
-  
-  # Filtramos solo las suertes que activaron GOES para el CSV final ligero
-  solo_alertas <- extraccion_alertas %>% filter(GOES_Fuego == TRUE)
-  
-  if (!dir.exists("data_master")) dir.create("data_master")
-  write.csv(solo_alertas, "data_master/GOES16_Alertas.csv", row.names = FALSE)
-  
-  if (nrow(solo_alertas) > 0) {
-    message(sprintf("🚨 ¡ALERTA MAYOR! GOES-16 detectó focos dinámicos en %d suertes.", nrow(solo_alertas)))
-    print(head(solo_alertas))
-  } else {
-    message("✅ SATICA GOES-16: Cielo limpio (FDC Mask OK).")
-  }
-} else {
-  message("✅ Error o lista vacía desde GEE.")
-  write.csv(data.frame(cod_unico = character(), GOES_Fuego = logical(), Estado_GOES = character()), 
-            "data_master/GOES16_Alertas.csv", row.names = FALSE)
+if (nrow(fuegos_conf) == 0) {
+  message("✅ FIRMS: Todos los focos son de baja confianza. Sin alerta.")
+  write.csv(alertas_vacio, "data_master/GOES16_Alertas.csv", row.names = FALSE)
+  return(invisible(NULL))
 }
 
-message("✅ Monitoreo de Alta Frecuencia (GOES-16) Finalizado.")
+# --- Cruce espacial --------------------------------------------------------
+message("🗺️  Cruzando focos contra geometría de cultivos (SOR_OK.shp)...")
+
+cana_path <- tryCatch(
+  normalizePath(list.files("capas", pattern = "SOR_OK\\.shp$",
+                            full.names = TRUE, recursive = TRUE)[1]),
+  error = function(e) NA
+)
+
+if (is.na(cana_path) || !file.exists(cana_path)) {
+  message("  ⚠️  No se encontró SOR_OK.shp. Generando alerta sin cruce espacial.")
+  # Generar alerta genérica sin cruce para no perder la detección
+  alertas_gen <- fuegos_conf %>%
+    transmute(
+      cod_unico   = paste0("FUEGO_", row_number()),
+      hda_nombre  = "Valle del Cauca (Sin cruce catastral)",
+      Mask_GOES   = if ("bright_ti4" %in% names(.)) bright_ti4 else NA_real_,
+      GOES_Fuego  = TRUE,
+      Estado_GOES = "Fuego Confirmado (FIRMS)"
+    )
+  write.csv(alertas_gen, "data_master/GOES16_Alertas.csv", row.names = FALSE)
+  message(sprintf("🚨 %d focos guardados (sin cruce catastral).", nrow(alertas_gen)))
+  return(invisible(NULL))
+}
+
+fuegos_sf <- st_as_sf(fuegos_conf,
+                       coords = c("longitude", "latitude"),
+                       crs = 4326)
+
+mapa_cana <- st_read(cana_path, quiet = TRUE) %>%
+  st_make_valid() %>%
+  janitor::clean_names() %>%
+  st_transform(4326) %>%
+  mutate(
+    hda_raw  = toupper(stringr::str_replace_all(
+      as.character(dplyr::coalesce(!!!dplyr::select(st_drop_geometry(.), dplyr::matches("^hda$|^cod$|^codigo$")))),
+      "[^0-9A-Za-z_]", "")),
+    ing_raw  = toupper(as.character(dplyr::coalesce(
+      !!!dplyr::select(st_drop_geometry(.), dplyr::matches("^ing$|^ingenio$"))))),
+    ing_clean = dplyr::case_when(
+      grepl("INCAUCA",     ing_raw) ~ "CA",
+      grepl("MAYAGUEZ",    ing_raw) ~ "MY",
+      grepl("MARIA LUISA", ing_raw) ~ "ML",
+      grepl("CASTILLA",    ing_raw) ~ "CC",
+      grepl("PROVIDENCIA", ing_raw) ~ "PR",
+      grepl("MANUELITA",   ing_raw) ~ "MN",
+      grepl("PICHICHI",    ing_raw) ~ "PC",
+      grepl("CABA",        ing_raw) ~ "CB",
+      grepl("RIOPAILA",    ing_raw) ~ "RP",
+      TRUE ~ ing_raw
+    ),
+    cod_unico  = paste(ing_clean,
+                       stringr::str_pad(hda_raw, width = 6, side = "left", pad = "0"),
+                       sep = "_"),
+    hda_nombre = toupper(as.character(dplyr::coalesce(
+      !!!dplyr::select(st_drop_geometry(.), dplyr::matches("^nombre_hda$|^nombre$")))))
+  )
+
+incendios <- suppressWarnings(
+  st_join(fuegos_sf, mapa_cana, join = st_intersects, left = FALSE)
+)
+
+if (nrow(incendios) == 0) {
+  message("✅ FIRMS: Focos detectados pero fuera de los polígonos catastrales. Sin alerta.")
+  write.csv(alertas_vacio, "data_master/GOES16_Alertas.csv", row.names = FALSE)
+  return(invisible(NULL))
+}
+
+# --- Construir CSV compatible con centinela_satelital.R --------------------
+bright_col <- intersect(c("bright_ti4", "bright_t31", "brightness"), names(incendios))
+brillo_vals <- if (length(bright_col) > 0) {
+  as.numeric(st_drop_geometry(incendios)[[bright_col[1]]])
+} else {
+  rep(NA_real_, nrow(incendios))
+}
+
+alertas_final <- st_drop_geometry(incendios) %>%
+  transmute(
+    cod_unico   = cod_unico,
+    hda_nombre  = hda_nombre,
+    Mask_GOES   = brillo_vals,
+    GOES_Fuego  = TRUE,
+    Estado_GOES = "Fuego Confirmado (FIRMS NRT)"
+  ) %>%
+  distinct(cod_unico, .keep_all = TRUE)
+
+write.csv(alertas_final, "data_master/GOES16_Alertas.csv", row.names = FALSE)
+
+message(sprintf("🚨 ¡ALERTA! FIRMS confirmó focos en %d suertes de caña.", nrow(alertas_final)))
+print(alertas_final)
+
+message("✅ Escaneo FIRMS finalizado.")
 return(invisible(NULL))
