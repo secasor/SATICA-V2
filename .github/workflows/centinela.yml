@@ -1,0 +1,69 @@
+name: SATICA Centinela Satelital (Radar GOES)
+
+on:
+  schedule:
+    # Corre cada 15 minutos solo en horas críticas
+    # Hora Colombia (UTC-5): 6:00 AM a 10:00 PM
+    # Equivalente en UTC: 11:00 UTC a 03:00 UTC
+    - cron: '*/15 11-23,0-3 * * *'
+  workflow_dispatch: # Permite ejecutarlo a mano mediante un botón
+
+jobs:
+  vigilancia:
+    runs-on: ubuntu-latest
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      EE_SERVICE_ACCOUNT: ${{ secrets.EE_SERVICE_ACCOUNT }}
+      EE_PRIVATE_KEY_DATA: ${{ secrets.EE_PRIVATE_KEY_DATA }} # JSON Key en Base64
+      SHINY_URL_BASE: 'https://cvcsuroriente.shinyapps.io/satica/' # Ajustar URL
+
+    steps:
+      - name: Clonar Repositorio
+        uses: actions/checkout@v4
+        
+      - name: Instalar dependencias del sistema operativo (Geospatiales y Python)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgdal-dev libgeos-dev libproj-dev python3-pip python3-venv
+
+      - name: Configurar Python e instalar Earth Engine API
+        run: |
+          python3 -m venv ~/.venv
+          source ~/.venv/bin/activate
+          pip install earthengine-api
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3.0'
+
+      - name: Cache de paquetes R
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-r-${{ hashFiles('**/DESCRIPTION') }}
+          restore-keys: ${{ runner.os }}-r-
+
+      - name: Instalar Paquetes de R
+        run: |
+          Rscript -e 'install.packages(c("sf", "dplyr", "httr", "stringr", "rgee", "janitor"), repos="https://cloud.r-project.org")'
+
+      - name: Inicializar Credenciales Earth Engine
+        run: |
+          # El script rgee buscará en ~/.config/earthengine/credentials
+          # Esta configuración la proveerás mediante los secretos del repositorio.
+          mkdir -p ~/.config/earthengine/
+          echo $EE_PRIVATE_KEY_DATA | base64 --decode > ~/.config/earthengine/key.json
+          
+      - name: Modificar Inicialización GEE en Robot para CI/CD
+        run: |
+          # Cuando estamos en GitHub, forzamos RGEE a usar la service account
+          sed -i 's/ee$Initialize(project = "satica-v2")/ee$Initialize(service_account = Sys.getenv("EE_SERVICE_ACCOUNT"), key = "~\/.config\/earthengine\/key.json", project = "satica-v2")/g' R/api_goes16.R
+          
+      - name: Ejecutar Centinela Satelital
+        run: |
+          source ~/.venv/bin/activate
+          # Configuramos la variable de entorno RETICULATE_PYTHON para R
+          export RETICULATE_PYTHON="~/.venv/bin/python"
+          Rscript centinela_satelital.R

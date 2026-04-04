@@ -1,0 +1,394 @@
+---
+title: "BOLETÍN DE ALERTAS TEMPRANAS"
+params:
+  datos: !r NA
+output: html_document
+---
+
+<style>
+/* Optimización para impresión PDF y Justificación de Textos */
+body { text-align: justify; }
+p { text-align: justify; margin-bottom: 15px; font-size: 11pt; }
+
+@media print {
+  body { font-size: 11pt; line-height: 1.2; text-align: justify; }
+  p { text-align: justify; }
+  .main-container { max-width: 95% !important; margin: 0 auto !important; }
+  
+  /* Evita que el título quede en una hoja sola */
+  h1, .subtitle, .date { page-break-after: avoid; margin-bottom: 5px; }
+  
+  /* Títulos de sección: solo saltan de página a partir del Punto 2 */
+  h2 { margin-top: 15px; margin-bottom: 10px; color: #21618C; text-align: left; }
+  h3 { text-align: left; }
+  .saltar-pagina { page-break-before: always; }
+  
+  /* Tablas y Gráficos */
+  .kable-table { page-break-inside: avoid; margin-top: 5px; }
+  img, .plot-container { max-height: 350px !important; }
+  
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+
+/* Estética en pantalla */
+h1 { font-size: 24pt; color: #1A5276; margin-bottom: 0; text-align: left; }
+.subtitle { font-size: 16pt; color: #5D6D7E; margin-bottom: 5px; text-align: left; }
+
+/* Fuerza a las coordenadas a mantenerse en una sola línea */
+.col-coords {
+  white-space: nowrap !important;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9em;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+# LIBRERÍAS OBLIGATORIAS
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+
+# 1. RECEPCIÓN DE DATOS DIRECTO DE SATICA
+datos_vigilancia <- params$datos
+if(inherits(datos_vigilancia, "sf")) {
+  coords <- st_coordinates(suppressWarnings(st_centroid(datos_vigilancia)))
+  datos_vigilancia$COORD_VAL <- paste(round(coords[,2], 4), round(coords[,1], 4), sep=", ")
+  datos_vigilancia <- sf::st_drop_geometry(datos_vigilancia)
+} else {
+  datos_vigilancia$COORD_VAL <- "Ver Mapa"
+}
+
+# 2. PREPARACIÓN DE COLUMNAS PARA EL BOLETÍN
+datos_vigilancia <- datos_vigilancia %>%
+  mutate(
+    MUN_VAL = MUNICIPIO,
+    HDA_NOM = HDA_LABEL,
+    CORREG_VAL = CORREGIMIENTO,
+    INGENIO_VAL = INGENIO_FULL,
+    TOTAL_HISTORICO = ifelse(is.na(N_EVENTOS), 0, as.numeric(N_EVENTOS)),
+    
+    TXT_ULTIMO_INCENDIO = ifelse(!is.na(FECHA_ULT_I), as.character(FECHA_ULT_I), "Sin Eventos"),
+    TXT_AUDITORIA = case_when(
+      ESTADO_CONTROL == "🛡️ Visitado" & !is.na(RADICADO) & RADICADO != "S/N" ~ paste("Visitado (Rad:", RADICADO, ")"),
+      ESTADO_CONTROL == "🛡️ Visitado" ~ "Visitado",
+      ESTADO_CONTROL == "✅ Incendio Evitado (Éxito)" ~ "Éxito / Evitado",
+      TRUE ~ "Sin Intervención"
+    ),
+    
+    PESO_RIESGO = case_when(
+      RIESGO == "CRITICO" ~ 1,
+      RIESGO == "ALTO" ~ 2,
+      RIESGO == "OBSERVACION" ~ 3,
+      TRUE ~ 4
+    )
+  )
+
+# 3. FILTRO PARA ALERTAS INMINENTES (CRÍTICO Y ALTO)
+datos_alerta <- datos_vigilancia %>% 
+  filter(RIESGO %in% c("CRITICO", "ALTO")) %>%
+  arrange(PESO_RIESGO, desc(DIFF_MESES))
+
+# 4. FILTRO QUINCENAL ESTRICTO (±15 Días - Solo para el Punto 2)
+datos_quincena <- datos_alerta %>%
+  mutate(
+    FECH_EST = as.Date(FECHA_ULT_I) + CICLO_DIAS,
+    DIAS_FALTANTES = as.numeric(FECH_EST - Sys.Date()),
+    TXT_ESTIMADO = ifelse(!is.na(FECH_EST), as.character(FECH_EST), "N/A")
+  ) %>%
+  filter(DIAS_FALTANTES >= -15 & DIAS_FALTANTES <= 15)
+```
+
+## 1. Resumen Ejecutivo de Riesgo
+Este resumen presenta el estado actual de las haciendas integradas en el sistema, clasificadas de acuerdo con su evolución estadística en el ciclo calculado. Esta visión permite estratificar el esfuerzo operativo de la corporación desde la respuesta inmediata hasta el seguimiento preventivo.
+
+A continuación se detalla la semaforización oficial del riesgo territorial:
+
+* **CRÍTICO (🔴 Rojo):** Alta probabilidad de ocurrencia inmediata (-1 a +1 mes).
+* **ALTO (🟠 Naranja):** Evento inminente/se encuentra rezagado (1 a 2 meses de diferencia).
+* **OBSERVACIÓN (🟡 Amarillo):** Alerta Temprana o Seguimiento (2 a 3 meses de diferencia).
+* **BAJO (🟢 Verde):** Predio se encuentra sin riesgo estadístico (> -3 meses).
+* **MITIGADO (🟢 Verde):** Ciclo Roto. Riesgo desaparece (> +3 meses).
+
+```{r resumen_prioritario, results='asis'}
+# Métrica Operativa de Control CVC (Muestra todas las críticas/altas)
+total_inminentes <- nrow(datos_alerta)
+visitadas_inminentes <- sum(datos_alerta$ESTADO_CONTROL == "🛡️ Visitado", na.rm = TRUE)
+pendientes <- total_inminentes - visitadas_inminentes
+
+if(total_inminentes > 0) {
+  cat(paste0("<p style='padding: 10px; background-color: #F8F9F9; border-left: 5px solid #2E86C1; border-radius: 3px;'><b>Balance de Control Territorial:</b> El sistema SATICA detecta actualmente <b>", total_inminentes, "</b> haciendas en niveles de riesgo CRÍTICO y ALTO. De estas, la corporación ya ha desplegado control y auditoría en <b>", visitadas_inminentes, "</b> predios, dejando <b>", pendientes, "</b> haciendas pendientes de intervención prioritaria.</p>"))
+}
+
+# Gráfica de Barras Oficial
+resumen_data <- datos_vigilancia %>%
+  mutate(RIESGO = factor(RIESGO, levels = c("CRITICO", "ALTO", "OBSERVACION", "BAJO")))
+
+if(nrow(resumen_data) > 0) {
+  grafico_resumen <- ggplot(resumen_data, aes(x = RIESGO, fill = RIESGO)) +
+    geom_bar(width = 0.7, color = "black", alpha = 0.9) +
+    scale_fill_manual(
+      values = c("CRITICO"="#CC0000", "ALTO"="#FF8C00", "OBSERVACION"="#F1C40F", "BAJO"="#2ECC71"), 
+      drop = FALSE
+    ) +
+    scale_x_discrete(drop = FALSE) +
+    labs(
+      title = "Estado General de Riesgos - DAR Suroriente",
+      subtitle = "Distribución por Nivel de Alerta",
+      x = "Nivel de Riesgo",
+      y = "Cantidad de Haciendas"
+    ) +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(face = "bold", size = 14),
+      axis.text.x = element_text(size = 11, face = "bold")
+    )
+  print(grafico_resumen)
+  
+  # Tabla Resumen Consolidada
+  resumen_tab <- resumen_data %>%
+    group_by(RIESGO) %>%
+    summarise(Cantidad = n(), .groups = 'drop') %>%
+    arrange(match(RIESGO, c("CRITICO", "ALTO", "OBSERVACION", "BAJO")))
+
+  cat(as.character(
+    kable(resumen_tab, col.names = c("Nivel de Riesgo", "N° de Haciendas")) %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
+  ))
+}
+```
+
+## 2. Cronograma de Alertas Inminentes (Ventana ±15 Días)
+Este listado es un cronograma estricto que identifica **únicamente** los predios que se encuentran en la ventana máxima de vulnerabilidad (a 15 días o menos de cumplir su ciclo estimado, o con un rezago máximo de 15 días). 
+
+```{r cronograma_agrupado, results='asis'}
+municipios_con_alerta <- sort(unique(datos_quincena$MUN_VAL))
+
+if(length(municipios_con_alerta) > 0) {
+  for(mun in municipios_con_alerta) {
+    cat(paste("\n### Municipio:", mun, "\n"))
+    
+    df_cronograma <- datos_quincena %>%
+      filter(MUN_VAL == mun) %>%
+      select(
+        Hacienda = HDA_NOM,
+        Corregimiento = CORREG_VAL,
+        Ingenio = INGENIO_VAL,
+        `Último Evento` = TXT_ULTIMO_INCENDIO,
+        `Ciclo Estimado` = TXT_ESTIMADO,
+        `Histórico` = TOTAL_HISTORICO,
+        `Gestión CVC` = TXT_AUDITORIA,
+        Coordenadas = COORD_VAL
+      )
+    
+    cat(as.character(
+      kable(df_cronograma) %>%
+        kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T, font_size = 11) %>%
+        row_spec(0, background = "#2C3E50", color = "white") %>%
+        column_spec(3, width = "100px") %>%
+        column_spec(4, width = "80px", extra_css = "white-space: nowrap;") %>%
+        column_spec(5, width = "80px", bold = T, color = "#C0392B", extra_css = "white-space: nowrap;") %>%
+        column_spec(6, width = "50px", bold = T) %>%
+        column_spec(7, width = "120px", bold = T, color = "#2E86C1") %>%
+        column_spec(8, width = "140px", bold = T, color = "black", extra_css = "white-space: nowrap;")
+    ))
+    cat("\n<br>\n") 
+  }
+} else {
+  cat("### ✅ No se registran alertas inminentes en la ventana operativa (±15 días) para este ciclo.")
+}
+```
+
+<div class="saltar-pagina"></div>
+
+## 3. Focalización Operativa (Top 10 por Municipio)
+A continuación, se presentan las haciendas priorizadas por municipio de la DAR Suroriente. Este listado muestra únicamente las 10 haciendas con mayor recurrencia histórica por zona. Conocer la fecha de su último evento permite cruzar patrones de ocurrencia y realizar un seguimiento preventivo más eficiente.
+
+```{r focalizacion_territorial, results='asis'}
+top_municipios <- datos_vigilancia %>%
+  group_by(MUN_VAL) %>%
+  slice_max(order_by = TOTAL_HISTORICO, n = 10, with_ties = FALSE) %>%
+  arrange(MUN_VAL, desc(TOTAL_HISTORICO))
+
+municipios_lista <- sort(unique(top_municipios$MUN_VAL))
+
+if(length(municipios_lista) > 0) {
+  for(mun in municipios_lista) {
+    cat(paste("\n### Municipio:", mun, "\n"))
+    
+    df_mun <- top_municipios %>%
+      filter(MUN_VAL == mun) %>%
+      ungroup() %>%
+      select(
+        Hacienda = HDA_NOM,
+        Corregimiento = CORREG_VAL,
+        Ingenio = INGENIO_VAL,
+        Riesgo = RIESGO,
+        `Último Evento` = TXT_ULTIMO_INCENDIO,
+        Historial = TOTAL_HISTORICO,
+        `Gestión CVC` = TXT_AUDITORIA,
+        Coordenadas = COORD_VAL
+      )
+    
+    cat(as.character(
+      kable(df_mun) %>%
+        kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T, font_size = 11) %>%
+        row_spec(0, background = "#2C3E50", color = "white") %>%
+        column_spec(3, width = "100px") %>%
+        column_spec(4, width = "90px", bold = T, color = "white",
+                    background = case_when(
+                      df_mun$Riesgo == "CRITICO" ~ "#CC0000",
+                      df_mun$Riesgo == "ALTO" ~ "#FF8C00",
+                      df_mun$Riesgo == "OBSERVACION" ~ "#F1C40F",
+                      TRUE ~ "#2ECC71"
+                    )) %>%
+        column_spec(5, width = "90px", extra_css = "white-space: nowrap;") %>%
+        column_spec(6, width = "60px", bold = T) %>%
+        column_spec(7, width = "130px") %>%
+        column_spec(8, width = "140px", bold = T, color = "black", extra_css = "white-space: nowrap;")
+    ))
+    cat("\n<br>\n") 
+  }
+}
+```
+
+<div class="saltar-pagina"></div>
+
+## 4. Ficha Detalle Técnica (Top 10 DAR Suroriente)
+Esta sección consolida las haciendas prioritarias de toda la DAR Suroriente en una sola tabla matriz. Su criterio principal es la recurrencia histórica de incendios, independientemente de su nivel de riesgo actual. Esta ficha técnica facilita la consulta rápida de coordenadas y soporta el historial de las visitas institucionales realizadas al predio.
+
+```{r ficha_tecnica_consolidada}
+ficha_maestra <- datos_vigilancia %>%
+  slice_max(order_by = TOTAL_HISTORICO, n = 10, with_ties = FALSE) %>%
+  arrange(desc(TOTAL_HISTORICO)) %>%
+  select(
+    Municipio = MUN_VAL,
+    Hacienda = HDA_NOM,
+    Ingenio = INGENIO_VAL,
+    Nivel = RIESGO,
+    `Último Evento` = TXT_ULTIMO_INCENDIO,
+    `Histórico` = TOTAL_HISTORICO,
+    `Gestión CVC` = TXT_AUDITORIA,
+    Coordenadas = COORD_VAL
+  )
+
+if(nrow(ficha_maestra) > 0) {
+  kable(ficha_maestra) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T, font_size = 10, latex_options = "repeat_header") %>%
+  row_spec(0, background = "#1B2631", color = "white", bold = T) %>%
+  column_spec(3, width = "100px") %>%
+  column_spec(4, bold = T, color = "white", width = "80px",
+              background = case_when(
+                ficha_maestra$Nivel == "CRITICO" ~ "#CC0000",
+                ficha_maestra$Nivel == "ALTO" ~ "#FF8C00",
+                ficha_maestra$Nivel == "OBSERVACION" ~ "#F1C40F",
+                ficha_maestra$Nivel == "BAJO" ~ "#2ECC71",
+                TRUE ~ "#BDC3C7"
+              )) %>%
+  column_spec(5, width = "80px", extra_css = "white-space: nowrap;") %>%
+  column_spec(6, width = "60px", bold = T) %>%
+  column_spec(7, width = "120px", color = "#2E86C1") %>%
+  column_spec(8, width = "140px", bold = T, color = "black", border_left = T,
+              extra_css = "white-space: nowrap;")
+} else {
+  cat("### ⚠️ No hay datos suficientes para generar la Ficha Técnica Regional.")
+}
+```
+---
+
+<div class="saltar-pagina"></div>
+
+## 5. Haciendas sin Georreferenciación (Seguimiento en Campo)
+
+Esta sección lista los predios cañeros de la DAR Suroriente que tienen historial de incendio en los reportes de cosecha pero cuya geometría aún no está disponible en el sistema cartográfico. Se incluye el semáforo de riesgo calculado estadísticamente para orientar la priorización del trabajo de georreferenciación en campo.
+
+```{r singeorref_tabla, results='asis'}
+if (exists("SIN_GEORREF") && nrow(SIN_GEORREF) > 0) {
+
+  df_sg <- SIN_GEORREF %>%
+    arrange(
+      factor(RIESGO, levels = c("CRITICO","ALTO","OBSERVACION","BAJO","SIN GEORREF")),
+      desc(n_registros)
+    ) %>%
+    mutate(
+      TXT_ULT  = ifelse(!is.na(FECHA_ULT_I),    as.character(FECHA_ULT_I),    "Sin datos"),
+      TXT_CICLO_SG = ifelse(!is.na(FECHA_ESTIMADA), as.character(FECHA_ESTIMADA), "N/A"),
+      TXT_COORDS_SG = ifelse(Tiene_Coords,
+                              paste(round(LAT,4), round(LON,4), sep=", "),
+                              "Pendiente")
+    )
+
+  n_total   <- nrow(df_sg)
+  n_critico <- sum(df_sg$RIESGO == "CRITICO", na.rm=TRUE)
+  n_alto    <- sum(df_sg$RIESGO == "ALTO",    na.rm=TRUE)
+  n_coords  <- sum(df_sg$Tiene_Coords,        na.rm=TRUE)
+
+  cat(paste0(
+    "<p style='padding:10px; background-color:#FDEDEC; border-left:5px solid #E74C3C; border-radius:3px;'>",
+    "<b>Balance haciendas sin georreferenciación:</b> Se identifican <b>", n_total,
+    "</b> haciendas con historial de incendio en la DAR Suroriente sin geometría en el sistema. ",
+    "De estas, <b>", n_critico + n_alto,
+    "</b> presentan riesgo CRÍTICO o ALTO según ciclo estadístico calculado, y <b>",
+    n_coords, "</b> ya han sido georreferenciadas manualmente.</p>"
+  ))
+
+  municipios_sg <- sort(unique(df_sg$Municipio_Excel[df_sg$Municipio_Excel != "SIN DATO"]))
+
+  for (mun in municipios_sg) {
+    cat(paste("\n### Municipio:", mun, "\n"))
+    df_m <- df_sg %>%
+      filter(Municipio_Excel == mun) %>%
+      select(Hacienda = Nombre_Reporte, Corregimiento = Correg_Excel,
+             Ingenio = Ingenio, Riesgo = RIESGO,
+             `Último Evento` = TXT_ULT, `Próximo Ciclo` = TXT_CICLO_SG,
+             Eventos = n_registros, Coordenadas = TXT_COORDS_SG)
+
+    cat(as.character(
+      kable(df_m) %>%
+        kable_styling(bootstrap_options = c("striped","hover","condensed"),
+                      full_width = T, font_size = 10) %>%
+        row_spec(0, background = "#922B21", color = "white") %>%
+        column_spec(4, bold = T, color = "white",
+                    background = case_when(
+                      df_m$Riesgo == "CRITICO"     ~ "#CC0000",
+                      df_m$Riesgo == "ALTO"        ~ "#FF8C00",
+                      df_m$Riesgo == "OBSERVACION" ~ "#F1C40F",
+                      df_m$Riesgo == "SIN GEORREF" ~ "#95A5A6",
+                      TRUE                         ~ "#2ECC71"
+                    )) %>%
+        column_spec(5, width = "80px", extra_css = "white-space: nowrap;") %>%
+        column_spec(6, width = "80px", extra_css = "white-space: nowrap;") %>%
+        column_spec(7, width = "50px", bold = T) %>%
+        column_spec(8, bold = T, color = "black", extra_css = "white-space: nowrap; font-size:0.9em;")
+    ))
+    cat("\n<br>\n")
+  }
+
+  sin_mun_sg <- df_sg %>% filter(Municipio_Excel == "SIN DATO")
+  if (nrow(sin_mun_sg) > 0) {
+    cat("\n### Municipio no identificado\n")
+    cat(as.character(
+      kable(sin_mun_sg %>% select(Hacienda=Nombre_Reporte, Ingenio, Riesgo=RIESGO, Eventos=n_registros)) %>%
+        kable_styling(bootstrap_options=c("striped","condensed"), full_width=F, font_size=10) %>%
+        row_spec(0, background="#922B21", color="white")
+    ))
+  }
+
+} else {
+  cat("### ✅ No se han identificado haciendas sin georreferenciación para este ciclo.")
+}
+```
+
+---
+
+<center>
+<p style="color: #7F8C8D; font-size: 14px; text-align: center;">
+**Fin del Reporte SATICA**<br>
+*Generado automáticamente por la Dirección Ambiental Regional Suroriente.*<br>
+Fecha de emisión: `r format(Sys.time(), '%d/%m/%Y %H:%M')`
+</p>
+</center>

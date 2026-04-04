@@ -1,0 +1,47 @@
+# ==================================================
+# SATICA V2.0 — .gitignore
+# Archivos excluidos del repositorio GitHub
+# ==================================================
+
+# --- Datos sensibles y privados ---
+# Llaves y credenciales
+*.json
+ee_credentials*.R
+*_key.json
+*_credentials*
+
+# --- Datos locales pesados (no son código) ---
+*.RData
+*.Rhistory
+-PAL21002.Rhistory
+*.rds
+*.RDS
+
+# --- Datos de salida y reportes generados ---
+reporte.html
+*.docx
+*.pptx
+*.xlsx
+*.pdf
+
+# --- Carpetas con datos geográficos y de salida ---
+capas/
+data_estatica/
+data_master/
+modelo_rds/
+reportes/
+reportes_alerta/
+reportes_cosecha/
+reportes_finales/
+resultados_diagnostico/
+resultados_modelo/
+actas/
+.archivos_temporales/
+
+# --- Archivos temporales de R ---
+*.Rout
+.Rapp.history
+
+# --- Archivos de Sistema ---
+.DS_Store
+Thumbs.db
