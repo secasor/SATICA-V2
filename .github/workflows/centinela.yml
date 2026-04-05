@@ -4,13 +4,13 @@ on:
   schedule:
     # Corre cada 15 minutos en horas críticas
     # Hora Colombia (UTC-5): 6:00 AM a 10:00 PM
-    # Equivalente en UTC: 11:00 UTC a 03:00 UTC+1 (siguiente día)
+    # Equivalente en UTC: 11:00 UTC a 03:00 UTC (día siguiente)
     - cron: '*/15 11-23,0-3 * * *'
   workflow_dispatch: # Permite ejecutarlo a mano con el botón "Run workflow"
 
 jobs:
   vigilancia:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04   # Ubuntu 22.04 tiene GDAL/GEOS más estables
 
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -22,36 +22,54 @@ jobs:
       - name: 📥 Clonar Repositorio
         uses: actions/checkout@v4
 
-      - name: 🔧 Instalar dependencias del sistema (GIS)
+      - name: 🔧 Instalar dependencias del sistema (GIS completo)
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            libgdal-dev libgeos-dev libproj-dev \
-            libcurl4-openssl-dev libssl-dev libxml2-dev
+            libgdal-dev \
+            libgeos-dev \
+            libproj-dev \
+            libudunits2-dev \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev \
+            libfontconfig1-dev \
+            libharfbuzz-dev \
+            libfribidi-dev
+          echo "✅ Dependencias del sistema instaladas correctamente."
 
       - name: 🔵 Configurar R 4.4
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.4.0'
+          use-public-rspm: true   # Usa binarios precompilados (mucho más rápido)
 
       - name: 📦 Cache de paquetes R
         uses: actions/cache@v4
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-r-firms-${{ hashFiles('R/api_goes16.R') }}
-          restore-keys: ${{ runner.os }}-r-firms-
+          key: ${{ runner.os }}-r-44-firms-v2
+          restore-keys: ${{ runner.os }}-r-44-firms-
 
-      - name: 📦 Instalar paquetes R necesarios
+      - name: 📦 Instalar paquetes R (desde binarios RSPM)
         run: |
           Rscript -e '
+            options(repos = c(
+              RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest",
+              CRAN = "https://cloud.r-project.org"
+            ))
             pkgs <- c("sf", "dplyr", "httr", "stringr", "readr", "janitor")
             to_install <- pkgs[!pkgs %in% installed.packages()[,"Package"]]
             if (length(to_install)) {
-              install.packages(to_install,
-                repos = "https://cloud.r-project.org",
-                Ncpus = 2)
+              message("Instalando: ", paste(to_install, collapse=", "))
+              install.packages(to_install, Ncpus = 2)
             }
-            message("Paquetes verificados: ", paste(pkgs, collapse=", "))
+            # Verificar que se carguen correctamente
+            invisible(lapply(pkgs, function(p) {
+              if (!requireNamespace(p, quietly=TRUE))
+                stop("Falló la carga de: ", p)
+            }))
+            message("✅ Todos los paquetes listos: ", paste(pkgs, collapse=", "))
           '
 
       - name: 🛰️ Ejecutar Centinela Satelital SATICA
