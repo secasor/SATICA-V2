@@ -52,7 +52,35 @@ Es el cerebro que integra la geografía con los datos de negocio:
 
 ---
 
-## 🤖 4. Nivel Administración: Infraestructura y Automatización
+## 📋 4. Nivel Táctico: Boletines y Visitas Preventivas
+
+SATICA no solo alerta, sino que organiza el trabajo en campo para cumplir con la **Resolución 0741 de 2016**.
+
+### 📄 Generador de Boletines de Visita
+El sistema permite descargar dos tipos de documentos tácticos desde el Dashboard:
+1.  **Plantilla de Visitas (.csv)**: Una lista inteligente que prioriza las haciendas en riesgo crítico por municipio ("Top 10"). Permite a los técnicos llevar un control organizado de qué predio visitar cada semana.
+2.  **Boletín Ejecutivo (.pdf/.docx)**: Informe de sustento técnico que describe el estado de la hacienda, su historial y por qué es necesaria la visita preventiva de inspección de rondas cortafuego.
+
+### 📈 Métrica Histórica y de Éxito
+El sistema evalúa la gestión de la CVC mediante un algoritmo de control:
+- **Hacienda Recurrente**: Aquella con historial persistente de incendios (>1 evento).
+- **Incendio Evitado (Éxito)**: Si se registra una visita técnica preventiva y el predio supera su "ciclo predicho" sin quemarse, SATICA lo otorga como un **caso de éxito ambiental**.
+
+---
+
+## 🗺️ 5. Nivel Cartográfico: Integración con QGIS y ArcGIS
+
+Para los especialistas en SIG, SATICA actúa como un generador de capas geográficas de alta precisión.
+
+### 🛰️ Exportación de Capas Inteligentes
+Al pulsar el botón **"Descargar Capa GIS"**, el sistema genera un archivo **.KML** con las siguientes características:
+- **Estilos Embebidos (Inline Styles)**: Los polígonos ya vienen pintados de rojo (Crítico) o naranja (Alto) listos para ver.
+- **Atributos de Riesgo**: Incluye la fecha estimada de incendio y el tipo de vulnerabilidad.
+- **Compatibilidad Total**: Diseñado para ser arrastrado directamente a **QGIS, ArcGIS Pro o Google Earth**, permitiendo cruzar la inteligencia de SATICA con otras capas institucionales de la CVC.
+
+---
+
+## 🤖 6. Nivel Administración: Infraestructura y Automatización
 
 SATICA es un sistema "Serverless" que corre sin necesidad de servidores propios costosos.
 
