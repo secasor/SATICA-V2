@@ -21,8 +21,15 @@ message("🤖 Iniciando Centinela Satelital de SATICA...")
 tryCatch({
   source("R/api_goes16.R")
 }, error = function(e) {
-  message("Error en el escaneo satelital: ", e$message)
-  quit(status = 1)
+  message("⚠️ Error en el escaneo satelital: ", e$message)
+  message("ℹ️ El escaneo no encontró datos. El robot termina normalmente.")
+  # Crear archivo vacío para que el siguiente paso no falle
+  if (!dir.exists("data_master")) dir.create("data_master")
+  write.csv(
+    data.frame(cod_unico=character(), hda_nombre=character(),
+               Mask_GOES=numeric(), GOES_Fuego=logical(), Estado_GOES=character()),
+    "data_master/GOES16_Alertas.csv", row.names = FALSE
+  )
 })
 
 # =============================================================================

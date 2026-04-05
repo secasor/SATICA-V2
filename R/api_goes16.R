@@ -43,8 +43,17 @@ descargar_seguro <- function(url, fuente) {
     res <- GET(url, timeout(30))
     if (status_code(res) == 200) {
       txt <- content(res, "text", encoding = "UTF-8")
-      if (nchar(trimws(txt)) < 10) return(NULL)
-      df <- suppressMessages(read_csv(txt, show_col_types = FALSE))
+      # Verificar que no sea un mensaje de error de la API
+      if (nchar(trimws(txt)) < 30) {
+        message(sprintf("  ⚠️  %s: Respuesta vacía o muy corta.", fuente))
+        return(NULL)
+      }
+      # I() fuerza a readr a tratar el string como datos, no como ruta de archivo
+      df <- suppressMessages(read_csv(I(txt), show_col_types = FALSE))
+      if (nrow(df) == 0) {
+        message(sprintf("  ℹ️  %s: Sin focos en el área.", fuente))
+        return(NULL)
+      }
       message(sprintf("  ✅ %s: %d focos descargados.", fuente, nrow(df)))
       return(df)
     } else {
@@ -52,7 +61,7 @@ descargar_seguro <- function(url, fuente) {
       return(NULL)
     }
   }, error = function(e) {
-    message(sprintf("  ⚠️  %s: Error de red — %s", fuente, e$message))
+    message(sprintf("  ⚠️  %s: Error — %s", fuente, e$message))
     return(NULL)
   })
 }
