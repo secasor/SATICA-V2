@@ -17,6 +17,79 @@ library(readr)
 library(rmarkdown)
 library(openxlsx)
 
+# =========================================================================
+# 🔄 SMART SYNC — ACTUALIZACIÓN AUTOMÁTICA AL INICIO
+# =========================================================================
+# Elimina la necesidad de ejecutar actualizar_y_ejecutar.R manualmente.
+# Cada vez que se abre la App, verifica si los datos están desactualizados.
+# Si tienen más de 30 minutos, actualiza automáticamente vía NASA FIRMS.
+# Modo Offline: si no hay internet, usa los últimos datos disponibles.
+# =========================================================================
+
+.SMART_SYNC_UMBRAL_MIN <- 30  # Minutos de tolerancia antes de re-sincronizar
+.RDS_PATH <- "data_master/SATICA_MASTER_v2.2.rds"
+
+.datos_desactualizados <- function() {
+  if (!file.exists(.RDS_PATH)) {
+    message("📂 Smart Sync: No existe el archivo maestro. Iniciando creación...")
+    return(TRUE)
+  }
+  mins_transcurridos <- as.numeric(difftime(Sys.time(),
+                                             file.mtime(.RDS_PATH),
+                                             units = "mins"))
+  message(sprintf("⏱️  Smart Sync: Datos tienen %.0f minutos de antigüedad.", mins_transcurridos))
+  return(mins_transcurridos > .SMART_SYNC_UMBRAL_MIN)
+}
+
+.hay_internet <- function() {
+  tryCatch({
+    con <- url("https://firms.modaps.eosdis.nasa.gov", open = "r")
+    close(con)
+    return(TRUE)
+  }, error = function(e) FALSE)
+}
+
+if (.datos_desactualizados()) {
+  if (.hay_internet()) {
+    message("🔄 Smart Sync: Datos desactualizados. Iniciando sincronización satelital...")
+    
+    # Paso 1: Actualizar telemetría NASA FIRMS (sin GEE, sin Python)
+    message("  🛰️  [1/2] Consultando NASA FIRMS (VIIRS 375m + MODIS)...")
+    tryCatch({
+      source("R/api_nasa_firms.R")
+      message("  ✅ NASA FIRMS: Telemetría actualizada.")
+    }, error = function(e) {
+      message("  ⚠️  NASA FIRMS sin datos (puede ser que el área esté limpia): ", e$message)
+    })
+    
+    # Paso 2: Reconstruir el Motor de Predicción SATICA
+    message("  ⚙️  [2/2] Ejecutando Motor de Consolidación y Predicción...")
+    tryCatch({
+      source("satica_engine.R")
+      message("  ✅ Motor SATICA: Base maestra actualizada.")
+    }, error = function(e) {
+      message("  ❌ Error en Motor SATICA: ", e$message)
+      message("  ℹ️  Se continuará con los datos del ciclo anterior.")
+    })
+    
+    message("✅ Smart Sync completado. Cargando Dashboard...")
+    
+  } else {
+    # MODO OFFLINE: sin internet, usa caché disponible
+    message("📡 Smart Sync: Sin conexión a internet detectada.")
+    if (file.exists(.RDS_PATH)) {
+      message("⚠️  MODO OFFLINE: Cargando últimos datos satelitales disponibles.")
+      message("   Los datos pueden tener hasta ",
+              round(as.numeric(difftime(Sys.time(), file.mtime(.RDS_PATH), units = "hours")), 1),
+              " horas de antigüedad.")
+    } else {
+      stop("❌ Sin internet y sin datos en caché. Conecte a internet y reinicie la App.")
+    }
+  }
+} else {
+  message("✅ Smart Sync: Datos actualizados (< 30 min). Cargando Dashboard directamente.")
+}
+
 # -------------------------------------------------------------------------
 # CONFIGURACIÓN DEL MOTOR
 # -------------------------------------------------------------------------
