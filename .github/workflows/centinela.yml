@@ -139,9 +139,9 @@ jobs:
           cp aux_functions.R ../hf-deploy-dir/
           cp Dockerfile ../hf-deploy-dir/
           
-          # Copiar directorios estáticos requeridos (caches y assets)
-          [ -d "data_estatica" ] && cp -r data_estatica ../hf-deploy-dir/ || echo "No data_estatica"
-          [ -d "www" ] && cp -r www ../hf-deploy-dir/ || echo "No www"
+          # Copiar únicamente el logo de la corporación para la interfaz
+          mkdir -p ../hf-deploy-dir/www
+          [ -f "www/cvc_logo.png" ] && cp www/cvc_logo.png ../hf-deploy-dir/www/ || echo "No logo"
           
           # Ir al directorio temporal
           cd ../hf-deploy-dir
