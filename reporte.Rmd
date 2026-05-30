@@ -52,8 +52,109 @@ library(ggplot2)
 library(knitr)
 library(kableExtra)
 
-# 1. RECEPCIÓN DE DATOS DIRECTO DE SATICA
+# 1. RECEPCIÓN DE DATOS DIRECTO DE SATICA (CON FALLBACK RESISTENTE EN LA NUBE)
 datos_vigilancia <- params$datos
+if (!inherits(datos_vigilancia, "data.frame") || nrow(datos_vigilancia) == 0) {
+  message("🌐 Cargando base de datos maestra consolidada en la Nube...")
+  
+  # 1. Cargar bases maestras y de caché
+  master_rds <- readRDS("data_master/SATICA_MASTER_v2.2.rds")
+  DATOS_ESPACIALES_BASE <- readRDS("data_estatica/GEO_CACHE_SATICA.rds")
+  
+  # 2. Agrupar master_rds a nivel de Hacienda (como en global.R)
+  formatear_tiempo_g <- function(dias) {
+    if (is.na(dias) || dias == 0) return("Sin Historial")
+    if (dias < 60) return(paste(round(dias), "días"))
+    meses <- floor(dias / 30.44); sobra <- round(dias %% 30.44)
+    txt_m <- ifelse(meses == 1, "1 mes", paste(meses, "meses"))
+    txt_d <- ifelse(sobra > 0, paste(sobra, "días"), "")
+    return(trimws(paste(txt_m, txt_d)))
+  }
+  
+  DB_RIESGO <- master_rds %>%
+    group_by(cod_hda_key) %>%
+    summarise(
+      TOTAL_HISTORICO = max(N_EVENTOS_HDA,      na.rm = TRUE),
+      N_EVENTOS       = max(N_EVENTOS_HDA,      na.rm = TRUE),
+      FECHA_ULT_I     = max(FECHA_ULT_I_HDA,    na.rm = TRUE),
+      CICLO_DIAS      = mean(FRECUENCIA_HDA_DIAS, na.rm = TRUE),
+      TXT_CICLO       = sapply(mean(FRECUENCIA_HDA_DIAS, na.rm = TRUE), formatear_tiempo_g),
+      DIFF_MESES      = min(DIFF_HDA_MESES,      na.rm = TRUE),
+      RIESGO = { idx <- which.min(DIFF_HDA_MESES); if (length(idx) > 0) riesgo[idx] else NA_character_ },
+      COL    = { idx <- which.min(DIFF_HDA_MESES); if (length(idx) > 0) col[idx]    else NA_character_ },
+      FECHA_ESTIMADA  = as.Date(max(FECHA_ULT_I_HDA, na.rm = TRUE) +
+                                  mean(FRECUENCIA_HDA_DIAS, na.rm = TRUE)),
+      SAT_FUEGO       = if("Satelite_Fuego" %in% names(.)) any(Satelite_Fuego == TRUE, na.rm = TRUE) else FALSE,
+      GOES_FUEGO      = if("GOES_Fuego" %in% names(.)) any(GOES_Fuego == TRUE, na.rm = TRUE) else FALSE,
+      ESTADO_GOES     = if("Estado_GOES" %in% names(.)) first(na.omit(Estado_GOES)) else "Normal",
+      MAX_NDVI        = if("NDVI" %in% names(.)) max(NDVI, na.rm = TRUE) else 0.5,
+      ESTADO_BIOMASA  = if("Alerta_Combustion" %in% names(.)) first(na.omit(Alerta_Combustion)) else "Sin Datos",
+      .groups = "drop"
+    ) %>%
+    mutate(
+      FECHA_ULT_I = if_else(is.infinite(FECHA_ULT_I), as.Date(NA), as.Date(FECHA_ULT_I)),
+      RIESGO      = coalesce(RIESGO, "BAJO"),
+      COL         = coalesce(COL,    "#7f8c8d"),
+      COD_HDA_KEY = cod_hda_key
+    )
+    
+  # 3. Cruzar con geometría base para heredar municipio/corregimiento/hda_label
+  DATOS_OFICIALES <- DATOS_ESPACIALES_BASE %>%
+    left_join(DB_RIESGO, by = "COD_HDA_KEY") %>%
+    mutate(
+      TOTAL_HISTORICO = coalesce(TOTAL_HISTORICO, 0),
+      N_EVENTOS = coalesce(N_EVENTOS, 0),
+      FECHA_ULT_I = as.Date(FECHA_ULT_I, origin = "1970-01-01"),
+      SAT_FUEGO   = coalesce(SAT_FUEGO, FALSE),
+      GOES_FUEGO  = coalesce(GOES_FUEGO, FALSE),
+      ESTADO_GOES = coalesce(ESTADO_GOES, "Normal"),
+      ESTADO_BIOMASA = coalesce(ESTADO_BIOMASA, "Sin Datos")
+    )
+    
+  # 4. Cruzar con visitas
+  ruta_csv <- "visitas_cvc.csv"
+  df_v <- NULL
+  if (file.exists(ruta_csv)) {
+    df_v <- tryCatch({ read.csv(ruta_csv, stringsAsFactors = FALSE) %>% janitor::clean_names() }, error = function(e) NULL)
+  }
+  
+  if(!is.null(df_v) && all(c("cod_hda_key", "fecha_visita") %in% names(df_v))) {
+    datos_visitas <- df_v %>%
+      mutate(
+        COD_HDA_KEY = toupper(trimws(as.character(cod_hda_key))),
+        FECHA_VISITA = as.Date(fecha_visita)
+      ) %>%
+      group_by(COD_HDA_KEY) %>%
+      summarise(
+        HISTORIAL_VISITAS = paste(sort(format(unique(FECHA_VISITA), "%Y-%m-%d")), collapse = " | "),
+        FECHA_VISITA = max(FECHA_VISITA, na.rm = TRUE),
+        RADICADO = if("radicado" %in% names(df_v)) { val <- trimws(as.character(last(radicado))); ifelse(is.na(val) | val == "", "S/N", val) } else "S/N",
+        .groups = "drop"
+      )
+  } else {
+    datos_visitas <- data.frame(COD_HDA_KEY = character(), FECHA_VISITA = as.Date(character()), RADICADO = character(), HISTORIAL_VISITAS = character())
+  }
+  
+  fecha_hoy <- Sys.Date()
+  datos_vigilancia <- DATOS_OFICIALES %>% 
+    left_join(datos_visitas, by = "COD_HDA_KEY")
+    
+  if (!"HISTORIAL_VISITAS" %in% names(datos_vigilancia)) datos_vigilancia$HISTORIAL_VISITAS <- NA_character_
+  if (!"FECHA_VISITA" %in% names(datos_vigilancia)) datos_vigilancia$FECHA_VISITA <- as.Date(NA)
+  if (!"RADICADO" %in% names(datos_vigilancia)) datos_vigilancia$RADICADO <- "S/N"
+  
+  datos_vigilancia <- datos_vigilancia %>%
+    mutate(
+      DIAS_DESDE_ULT = as.numeric(fecha_hoy - FECHA_ULT_I),
+      DIAS_DESDE_VISITA = as.numeric(fecha_hoy - FECHA_VISITA),
+      ESTADO_CONTROL = case_when(
+        SAT_FUEGO & !is.na(FECHA_VISITA) & (abs(as.numeric(FECHA_VISITA - FECHA_ULT_I)) <= 5) ~ "✅ Incendio Evitado (Éxito)",
+        !is.na(FECHA_VISITA) & (is.na(FECHA_ULT_I) | FECHA_VISITA >= FECHA_ULT_I) ~ "🛡️ Visitado",
+        TRUE ~ "❌ Sin Visita"
+      )
+    )
+}
+
 if(inherits(datos_vigilancia, "sf")) {
   coords <- st_coordinates(suppressWarnings(st_centroid(datos_vigilancia)))
   datos_vigilancia$COORD_VAL <- paste(round(coords[,2], 4), round(coords[,1], 4), sep=", ")
