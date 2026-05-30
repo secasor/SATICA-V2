@@ -102,6 +102,11 @@ jobs:
           cp -f data_master/data_summary.json www/data_master/
           cp -f data_master/GOES16_Alertas.csv www/data_master/
           
+          # Copiamos la caché geoespacial estática para que la app interactiva la cargue desde la nube
+          mkdir -p www/data_estatica
+          cp -f data_estatica/GEO_CACHE_SATICA.rds www/data_estatica/
+          cp -f data_estatica/REST_CACHE_SATICA.RData www/data_estatica/
+          
           # Copiamos KML, XLSX y CSV generados por el motor si existen
           [ -f "data_master/SATICA_Seguimiento_latest.xlsx" ] && cp -f data_master/SATICA_Seguimiento_latest.xlsx www/data_master/ || echo "No XLSX"
           [ -f "data_master/Plantilla_Visitas_SATICA_latest.csv" ] && cp -f data_master/Plantilla_Visitas_SATICA_latest.csv www/data_master/ || echo "No CSV"

@@ -159,7 +159,21 @@ tryCatch({
   
   if (!dir.exists("data_estatica")) dir.create("data_estatica")
   
-  if (file.exists(cache_geo_path) && file.exists(cache_rest_path)) {
+  if (.ON_CLOUD) {
+    message("🌐 CLOUD CACHE: Cargando Base Geoespacial Estática desde Portal de GitHub Pages...")
+    DATOS_ESPACIALES_BASE <- readRDS(url("https://secasor.github.io/portal/data_estatica/GEO_CACHE_SATICA.rds"))
+    
+    # Cargar archivo .RData desde la URL descargándolo a un archivo temporal
+    temp_rest <- tempfile(fileext = ".RData")
+    tryCatch({
+      download.file("https://secasor.github.io/portal/data_estatica/REST_CACHE_SATICA.RData", temp_rest, mode = "wb", quiet = TRUE)
+      load(temp_rest, envir = .GlobalEnv)
+    }, error = function(e) {
+      message("⚠️ Error al descargar REST_CACHE_SATICA.RData: ", e$message)
+    }, finally = {
+      if (file.exists(temp_rest)) unlink(temp_rest)
+    })
+  } else if (file.exists(cache_geo_path) && file.exists(cache_rest_path)) {
     message("⚡ CACHE: Cargando Base Geoespacial Estática...")
     DATOS_ESPACIALES_BASE <- readRDS(cache_geo_path)
     load(cache_rest_path, envir = .GlobalEnv)
