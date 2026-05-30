@@ -65,7 +65,7 @@ jobs:
               RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest",
               CRAN = "https://cloud.r-project.org"
             ))
-            pkgs <- c("sf", "dplyr", "httr", "stringr", "readr", "janitor", "jsonlite", "openxlsx", "rmarkdown", "ggplot2", "visNetwork", "shinyWidgets", "shiny")
+            pkgs <- c("sf", "dplyr", "httr", "stringr", "readr", "janitor", "jsonlite", "openxlsx", "rmarkdown", "ggplot2", "visNetwork", "shinyWidgets", "shiny", "kableExtra")
             to_install <- pkgs[!pkgs %in% installed.packages()[,"Package"]]
             if (length(to_install)) {
               message("Instalando: ", paste(to_install, collapse=", "))
