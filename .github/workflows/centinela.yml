@@ -123,25 +123,38 @@ jobs:
       - name: 📤 Sincronizar Aplicación con Hugging Face Spaces
         if: env.HF_TOKEN != ''
         run: |
-          # Vinculamos y pusheamos el Dockerfile y código R de Shiny a Hugging Face
+          # Crear directorio temporal para el deploy limpio
+          mkdir -p ../hf-deploy-dir
+          
+          # Copiar archivos individuales de la aplicación Shiny
+          cp ui.R ../hf-deploy-dir/
+          cp server.R ../hf-deploy-dir/
+          cp global.R ../hf-deploy-dir/
+          cp instalar_dependencias.R ../hf-deploy-dir/
+          cp aux_functions.R ../hf-deploy-dir/
+          cp Dockerfile ../hf-deploy-dir/
+          
+          # Copiar directorios estáticos requeridos (caches y assets)
+          [ -d "data_estatica" ] && cp -r data_estatica ../hf-deploy-dir/ || echo "No data_estatica"
+          [ -d "www" ] && cp -r www ../hf-deploy-dir/ || echo "No www"
+          
+          # Ir al directorio temporal
+          cd ../hf-deploy-dir
+          
+          # Inicializar un nuevo repositorio git limpio desde cero (sin historial)
+          git init
           git config --global user.email "satica-bot@cvc.gov.co"
           git config --global user.name "SATICA Cloud Bot"
+          git config --global --add safe.directory $(pwd)
           
-          # Hugging Face requiere un remote de git seguro
-          git remote add hf https://satica-cvc:$HF_TOKEN@huggingface.co/spaces/satica-cvc/satica || true
+          # Agregar archivos y hacer un único commit plano
+          git add .
+          git commit -m "deploy: clean flat deployment for Hugging Face Spaces"
           
-          # Creamos una rama limpia temporal para excluir carpetas pesadas
-          git checkout -b temp-hf-deploy
+          # Agregar remoto y empujar forzado a la rama main
+          git remote add hf https://satica-cvc:$HF_TOKEN@huggingface.co/spaces/satica-cvc/satica
+          git push hf master:main --force || git push hf HEAD:main --force
           
-          # Removemos capas/ de la historia del commit para Hugging Face
-          git rm -r --cached capas/ || true
-          
-          # Hacemos commit del estado limpio libre de shapefiles pesados
-          git commit -m "deploy: remove large shapefiles for Hugging Face Spaces basic CPU tier"
-          
-          # Hacemos push forzado a la rama main de Hugging Face
-          git push hf temp-hf-deploy:main --force
-          
-          # Volvemos a master y limpiamos
-          git checkout master
-          git branch -D temp-hf-deploy
+          # Volver a la carpeta de trabajo y borrar la temporal
+          cd -
+          rm -rf ../hf-deploy-dir
