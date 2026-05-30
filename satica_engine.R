@@ -52,48 +52,63 @@ message("🔥 Procesando reportes de incendios bajo Cláusula Anti-Trituración.
 path_reportes <- "reportes_cosecha"
 archivos <- list.files(path_reportes, pattern = "\\.xlsx$|\\.xls$", full.names = TRUE)
 
-historial_incendios <- map_df(archivos, function(x) {
-  df_raw <- tryCatch({ read_excel(x, skip = 6, col_types = "text") %>% clean_names() }, error = function(e) NULL)
-  if(is.null(df_raw)) return(NULL)
-  
-  # Identificación dinámica de columnas
-  col_ing <- names(df_raw)[grepl("ingenio", names(df_raw))][1]
-  col_hda <- names(df_raw)[grepl("hacienda|cod_hda", names(df_raw))][1]
-  col_sue <- names(df_raw)[grepl("suerte|lote|cod_sue", names(df_raw))][1]
-  
-  if(any(is.na(c(col_ing, col_hda, col_sue)))) return(NULL)
-  
-  df_raw %>%
-    filter(cod_cosecha == "I") %>%
-    mutate(
-      ing_clean = limpiar_texto(!!sym(col_ing)),
-      Cod_ing = case_when(
-        grepl("INCAUCA", ing_clean) ~ "CA",
-        grepl("MAYAGUEZ", ing_clean) ~ "MY",
-        grepl("MARIA LUISA", ing_clean) ~ "ML",
-        grepl("CASTILLA", ing_clean) ~ "CC",
-        grepl("PROVIDENCIA", ing_clean) ~ "PR",
-        grepl("MANUELITA", ing_clean) ~ "MN",
-        grepl("PICHICHI", ing_clean) ~ "PC",
-        grepl("CABA", ing_clean) ~ "CB",
-        grepl("RIOPAILA", ing_clean) ~ "RP",
-        TRUE ~ NA_character_
-      ),
-      
-      # [BLINDAJE 1: ANTI-TRITURACIÓN APLICADO]
-      # Extraemos solo letras, números y guiones bajos. Sin conversión escalar.
-      # Rellenamos por la izquierda con ceros, garantizando strings como _008 o 4A y forzando mayúsculas.
-      hda_limpia = toupper(str_replace_all(as.character(!!sym(col_hda)), "[^0-9A-Za-z_]", "")),
-      sue_limpia = toupper(str_replace_all(as.character(!!sym(col_sue)), "[^0-9A-Za-z_]", "")),
-      Cod_hda_full = str_pad(hda_limpia, width = 6, side = "left", pad = "0"),
-      Cod_sue_full = str_pad(sue_limpia, width = 6, side = "left", pad = "0"),
-      
-      COD_UNICO_14 = paste0(Cod_ing, Cod_hda_full, Cod_sue_full),
-      FECHA = as.Date(as.numeric(fecha_dato), origin = "1899-12-30")
-    ) %>%
-    filter(!is.na(FECHA), !is.na(Cod_ing)) %>%
-    select(COD_UNICO_14, FECHA)
-})
+historial_incendios <- NULL
+if (length(archivos) > 0) {
+  historial_incendios <- map_df(archivos, function(x) {
+    df_raw <- tryCatch({ read_excel(x, skip = 6, col_types = "text") %>% clean_names() }, error = function(e) NULL)
+    if(is.null(df_raw)) return(NULL)
+    
+    # Identificación dinámica de columnas
+    col_ing <- names(df_raw)[grepl("ingenio", names(df_raw))][1]
+    col_hda <- names(df_raw)[grepl("hacienda|cod_hda", names(df_raw))][1]
+    col_sue <- names(df_raw)[grepl("suerte|lote|cod_sue", names(df_raw))][1]
+    
+    if(any(is.na(c(col_ing, col_hda, col_sue)))) return(NULL)
+    
+    df_raw %>%
+      filter(cod_cosecha == "I") %>%
+      mutate(
+        ing_clean = limpiar_texto(!!sym(col_ing)),
+        Cod_ing = case_when(
+          grepl("INCAUCA", ing_clean) ~ "CA",
+          grepl("MAYAGUEZ", ing_clean) ~ "MY",
+          grepl("MARIA LUISA", ing_clean) ~ "ML",
+          grepl("CASTILLA", ing_clean) ~ "CC",
+          grepl("PROVIDENCIA", ing_clean) ~ "PR",
+          grepl("MANUELITA", ing_clean) ~ "MN",
+          grepl("PICHICHI", ing_clean) ~ "PC",
+          grepl("CABA", ing_clean) ~ "CB",
+          grepl("RIOPAILA", ing_clean) ~ "RP",
+          TRUE ~ NA_character_
+        ),
+        
+        # [BLINDAJE 1: ANTI-TRITURACIÓN APLICADO]
+        # Extraemos solo letras, números y guiones bajos. Sin conversión escalar.
+        # Rellenamos por la izquierda con ceros, garantizando strings como _008 o 4A y forzando mayúsculas.
+        hda_limpia = toupper(str_replace_all(as.character(!!sym(col_hda)), "[^0-9A-Za-z_]", "")),
+        sue_limpia = toupper(str_replace_all(as.character(!!sym(col_sue)), "[^0-9A-Za-z_]", "")),
+        Cod_hda_full = str_pad(hda_limpia, width = 6, side = "left", pad = "0"),
+        Cod_sue_full = str_pad(sue_limpia, width = 6, side = "left", pad = "0"),
+        
+        COD_UNICO_14 = paste0(Cod_ing, Cod_hda_full, Cod_sue_full),
+        FECHA = as.Date(as.numeric(fecha_dato), origin = "1899-12-30")
+      ) %>%
+      filter(!is.na(FECHA), !is.na(Cod_ing)) %>%
+      select(COD_UNICO_14, FECHA)
+  })
+}
+
+# Fallback robusto en la nube si no hay archivos locales Excel a procesar
+if (is.null(historial_incendios) || nrow(historial_incendios) == 0) {
+  message("  🛰️  Sin nuevos archivos locales. Cargando historial consolidado de respaldo desde URL...")
+  url_historial <- "https://secasor.github.io/portal/data_master/SATICA_HISTORIAL_v2.2.rds"
+  historial_incendios <- tryCatch({
+    readRDS(url(url_historial))
+  }, error = function(e) {
+    message("  ⚠️  No se pudo descargar el historial consolidado. Creando estructura de respaldo vacía.")
+    data.frame(COD_UNICO_14 = character(), FECHA = as.Date(character()), stringsAsFactors = FALSE)
+  })
+}
 
 # 4. CÁLCULO DE ESTADÍSTICAS (SUERTE Y HACIENDA CRONOLÓGICA)
 saveRDS(historial_incendios, "data_master/SATICA_HISTORIAL_v2.2.rds")
