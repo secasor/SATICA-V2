@@ -52,6 +52,9 @@ library(ggplot2)
 library(knitr)
 library(kableExtra)
 
+# Desactivar geometría esférica para prevenir errores topológicos por vértices duplicados
+sf::sf_use_s2(FALSE)
+
 # 1. RECEPCIÓN DE DATOS DIRECTO DE SATICA (CON FALLBACK RESISTENTE EN LA NUBE)
 datos_vigilancia <- params$datos
 if (!inherits(datos_vigilancia, "data.frame") || nrow(datos_vigilancia) == 0) {
