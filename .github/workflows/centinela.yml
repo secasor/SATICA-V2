@@ -130,5 +130,18 @@ jobs:
           # Hugging Face requiere un remote de git seguro
           git remote add hf https://satica-cvc:$HF_TOKEN@huggingface.co/spaces/satica-cvc/satica || true
           
-          # Hacemos push forzado para actualizar la app interactiva en vivo
-          git push hf master:main --force
+          # Creamos una rama limpia temporal para excluir carpetas pesadas
+          git checkout -b temp-hf-deploy
+          
+          # Removemos capas/ de la historia del commit para Hugging Face
+          git rm -r --cached capas/ || true
+          
+          # Hacemos commit del estado limpio libre de shapefiles pesados
+          git commit -m "deploy: remove large shapefiles for Hugging Face Spaces basic CPU tier"
+          
+          # Hacemos push forzado a la rama main de Hugging Face
+          git push hf temp-hf-deploy:main --force
+          
+          # Volvemos a master y limpiamos
+          git checkout master
+          git branch -D temp-hf-deploy
