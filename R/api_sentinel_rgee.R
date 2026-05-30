@@ -17,7 +17,7 @@ library(dplyr)
 if (!requireNamespace("rgee", quietly = TRUE)) {
   stop("El paquete 'rgee' no está instalado. Para instalarlo, ejecuta: install.packages('rgee'). Luego corre rgee::ee_install()")
 }
-reticulate::use_condaenv("r-reticulate", required = TRUE)
+reticulate::use_condaenv("r-reticulate", required = FALSE)
 
 library(rgee)
 
@@ -114,7 +114,7 @@ for (i in 1:n_lotes) {
       props <- x$properties
       # GEE devuelve las bandas como propiedades directas cuando se usa select() + mean()
       data.frame(
-        cod_unico  = if (!is.null(props$cod_unico)) props$cod_unico else NA_character_,
+        cod_unico  = if (!is.null(props$cod_unico)) toupper(props$cod_unico) else NA_character_,
         hda_nombre = if (!is.null(props$hda_nombre)) props$hda_nombre else NA_character_,
         NDVI       = if (!is.null(props$NDVI)) as.numeric(props$NDVI) else NA_real_,
         NBR        = if (!is.null(props$NBR))  as.numeric(props$NBR)  else NA_real_,

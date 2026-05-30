@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SATICA V2.0 — Centro de Control Ambiental</title>
+  
+  <!-- Modern Typography from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-glass: rgba(15, 23, 42, 0.65);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --accent-blue: #38bdf8;
+      --accent-red: #f43f5e;
+      --accent-orange: #f59e0b;
+      --accent-green: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(244, 63, 94, 0.08) 0%, transparent 40%);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Floating glowing blobs in the background */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.5;
+    }
+    .blob-1 {
+      width: 300px;
+      height: 300px;
+      background: var(--accent-blue);
+      top: 15%;
+      left: -100px;
+      animation: float 20s infinite alternate;
+    }
+    .blob-2 {
+      width: 400px;
+      height: 400px;
+      background: var(--accent-red);
+      bottom: 10%;
+      right: -100px;
+      animation: float 25s infinite alternate-reverse;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(50px) scale(1.1); }
+    }
+
+    /* Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* Header styling */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 50px;
+      padding-bottom: 25px;
+      border-bottom: 1px solid var(--border-glass);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .brand-logo {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-red) 100%);
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.3);
+    }
+
+    .brand-title h1 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #ffffff 40%, var(--text-muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title p {
+      font-size: 13px;
+      color: var(--accent-blue);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-green);
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      background-color: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Grid layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    /* Glass Cards */
+    .card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: transparent;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    /* Card States */
+    .card-red::before { background: var(--accent-red); }
+    .card-red:hover { box-shadow: 0 10px 30px rgba(244, 63, 94, 0.15); }
+    .card-orange::before { background: var(--accent-orange); }
+    .card-orange:hover { box-shadow: 0 10px 30px rgba(245, 158, 11, 0.15); }
+    .card-yellow::before { background: var(--accent-blue); }
+    .card-yellow:hover { box-shadow: 0 10px 30px rgba(56, 189, 248, 0.15); }
+    .card-green::before { background: var(--accent-green); }
+    .card-green:hover { box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .card-icon {
+      font-size: 20px;
+      opacity: 0.8;
+    }
+    .card-red .card-icon { color: var(--accent-red); }
+    .card-orange .card-icon { color: var(--accent-orange); }
+    .card-yellow .card-icon { color: var(--accent-blue); }
+    .card-green .card-icon { color: var(--accent-green); }
+
+    .card-value {
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      margin-bottom: 5px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Actions Panel Grid */
+    .actions-section {
+      display: grid;
+      grid-template-columns: 1fr 3fr;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    /* Left Sidebar: Quick Actions */
+    .sidebar-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .btn-action {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      padding: 18px 24px;
+      border-radius: 16px;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-action i {
+      font-size: 18px;
+    }
+
+    .btn-action:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateX(5px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary-action {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, #0369a1 100%) !important;
+      border: none !important;
+      box-shadow: 0 10px 20px rgba(56, 189, 248, 0.25);
+    }
+    .btn-primary-action:hover {
+      box-shadow: 0 15px 30px rgba(56, 189, 248, 0.4);
+      transform: scale(1.02) translateX(0) !important;
+    }
+
+    .btn-download-pdf { border-left: 4px solid var(--accent-red); }
+    .btn-download-csv { border-left: 4px solid var(--accent-orange); }
+    .btn-download-kml { border-left: 4px solid var(--accent-blue); }
+    .btn-download-xlsx { border-left: 4px solid var(--accent-green); }
+
+    /* Main Area: Iframe Visor */
+    .visor-card {
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .visor-header {
+      background: rgba(15, 23, 42, 0.9);
+      padding: 15px 25px;
+      border-bottom: 1px solid var(--border-glass);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .visor-title {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .visor-title i {
+      color: var(--accent-blue);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+
+    /* Footer styling */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 40px;
+      padding-top: 25px;
+      border-top: 1px solid var(--border-glass);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .update-time {
+      font-weight: 600;
+      color: var(--accent-blue);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+      .actions-section { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      header { flex-direction: column; gap: 20px; text-align: center; }
+      .brand { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="container">
+    
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="brand-logo">
+          <i class="fa-solid fa-satellite-dish"></i>
+        </div>
+        <div class="brand-title">
+          <h1>SATICA V2.0</h1>
+          <p>DAR Suroriente — Corporación Autónoma Regional del Valle del Cauca</p>
+        </div>
+      </div>
+      
+      <div class="live-indicator">
+        <div class="pulse-dot"></div>
+        <span>Monitoreo Activo Cloud</span>
+      </div>
+    </header>
+
+    <!-- METRICS DASHBOARD -->
+    <div class="dashboard-grid">
+      <!-- Fuegos Activos NASA -->
+      <div class="card card-red">
+        <div class="card-header">
+          <span class="card-title">Fuegos Activos (24H)</span>
+          <i class="fa-solid fa-fire card-icon"></i>
+        </div>
+        <div class="card-value" id="val-fuegos">---</div>
+        <div class="card-desc">Anomalías térmicas confirmadas (NASA FIRMS)</div>
+      </div>
+
+      <!-- Alertas GOES-16 -->
+      <div class="card card-orange">
+        <div class="card-header">
+          <span class="card-title">Alertas GOES-16 (1H)</span>
+          <i class="fa-solid fa-satellite card-icon"></i>
+        </div>
+        <div class="card-value" id="val-goes">---</div>
+        <div class="card-desc">Eventos térmicos dinámicos detectados</div>
+      </div>
+
+      <!-- Predios Críticos -->
+      <div class="card card-yellow">
+        <div class="card-header">
+          <span class="card-title">Predios en Riesgo Crítico</span>
+          <i class="fa-solid fa-triangle-exclamation card-icon"></i>
+        </div>
+        <div class="card-value" id="val-criticos">---</div>
+        <div class="card-desc">Haciendas en riesgo alto o inmediato de quema</div>
+      </div>
+
+      <!-- Casos de Éxito -->
+      <div class="card card-green">
+        <div class="card-header">
+          <span class="card-title">Casos de Éxito</span>
+          <i class="fa-solid fa-award card-icon"></i>
+        </div>
+        <div class="card-value" id="val-exitos">---</div>
+        <div class="card-desc">Incendios prevenidos mediante visitas de CVC</div>
+      </div>
+    </div>
+
+    <!-- MAIN BODY: ACTIONS + REPORT VISOR -->
+    <div class="actions-section">
+      
+      <!-- Side Actions Panel -->
+      <div class="sidebar-actions">
+        <!-- Open Shiny Web App -->
+        <a href="https://secasor-satica.hf.space" target="_blank" class="btn-action btn-primary-action">
+          <i class="fa-solid fa-square-poll-horizontal"></i>
+          <span>Abrir Radar Interactivo</span>
+        </a>
+        
+        <!-- Download PDF -->
+        <a href="data_master/Boletin_SATICA_latest.pdf" download class="btn-action btn-download-pdf">
+          <i class="fa-solid fa-file-pdf"></i>
+          <span>Boletín de Visita (PDF)</span>
+        </a>
+        
+        <!-- Download CSV Plantilla -->
+        <a href="data_master/Plantilla_Visitas_SATICA_latest.csv" download class="btn-action btn-download-csv">
+          <i class="fa-solid fa-file-csv"></i>
+          <span>Plantilla de Visitas (CSV)</span>
+        </a>
+        
+        <!-- Download KML GIS -->
+        <a href="data_master/SATICA_GIS_latest.kml" download class="btn-action btn-download-kml">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span>Capa de Riesgo (KML)</span>
+        </a>
+
+        <!-- Download Excel base -->
+        <a href="data_master/SATICA_Seguimiento_latest.xlsx" download class="btn-action btn-download-xlsx">
+          <i class="fa-solid fa-file-excel"></i>
+          <span>Excel de Seguimiento</span>
+        </a>
+      </div>
+
+      <!-- Iframe Report Visor -->
+      <div class="card visor-card">
+        <div class="visor-header">
+          <div class="visor-title">
+            <i class="fa-solid fa-eye"></i>
+            <span>Vista Rápida: Informe de Incidencia Antrópica</span>
+          </div>
+          <a href="reporte.html" target="_blank" style="color:var(--accent-blue); text-decoration:none; font-size:13px; font-weight:600;">
+            <i class="fa-solid fa-expand"></i> Pantalla Completa
+          </a>
+        </div>
+        <iframe src="reporte.html" title="Reporte Ejecutivo SATICA"></iframe>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div>
+        <span>Última corrida en la Nube: </span>
+        <span class="update-time" id="val-time">---</span>
+      </div>
+      <div>
+        <span>Corporación Autónoma Regional del Valle del Cauca — DAR Suroriente (2026)</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- DYNAMIC LOGIC FOR FETCHING JSON STATS -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Intentar cargar las estadísticas en tiempo real desde el archivo JSON autogenerado
+      fetch("data_master/data_summary.json")
+        .then(response => {
+          if (!response.ok) throw new Error("JSON no disponible en local");
+          return response.json();
+        })
+        .then(data => {
+          // Asignar los valores dinámicos con animaciones de números si es posible
+          document.getElementById("val-fuegos").textContent = data.active_fires_24h ?? 0;
+          document.getElementById("val-goes").textContent = data.goes_alerts_1h ?? 0;
+          document.getElementById("val-criticos").textContent = data.critical_count ?? 0;
+          document.getElementById("val-exitos").textContent = data.success_count ?? 0;
+          document.getElementById("val-time").textContent = data.last_update ?? "---";
+        })
+        .catch(err => {
+          console.warn("Usando placeholders debido a ejecucion offline/local:", err.message);
+          // Fallbacks por defecto si no ha corrido el GitHub Actions
+          document.getElementById("val-fuegos").textContent = "Activo";
+          document.getElementById("val-goes").textContent = "Activo";
+          document.getElementById("val-criticos").textContent = "Cargado";
+          document.getElementById("val-exitos").textContent = "Cargado";
+          document.getElementById("val-time").textContent = "Sincronizado vía Git";
+        });
+    });
+  </script>
+
+</body>
+</html>

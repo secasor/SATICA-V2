@@ -1,0 +1,53 @@
+---
+title: "🔥 La Intervención Humana en el Fuego"
+subtitle: "Análisis Crítico de Incendios en Caña de Azúcar (CVC DAR Suroriente)"
+author: "Comunidad SATICA 2.0 - Alta Dirección"
+date: "`r Sys.Date()`"
+output: 
+  powerpoint_presentation:
+    reference_doc: "presentacion_satica.pptx" # (Usa en el futuro si tienes una plantilla corporativa)
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, dpi = 300)
+```
+
+## 🚨 El Desafío Inmediato
+
+* **¿De qué estamos hablando?** El fuego que arrasa cientos de hectáreas de caña de azúcar habitualmente *no es natural*. Es directamente detonado por accidentes o intenciones humanas.
+* **El Daño Multidimensional:** Más allá de la atmósfera, este flagelo golpea directamente el bienestar de nuestras poblaciones periurbanas (Candelaria, Florida, Palmira).
+* **El Objetivo:** Usar la inteligencia artificial de SATICA para develar el comportamiento del fuego antrópico y auditar con precisión militar a quienes no cumplen la norma.
+
+## 📉 Radiografía de las Quemas: Evolución
+
+* Esta gráfica muestra que la mano humana es una variable persistente. 
+* Los "picos de calor" antrópicos reflejan vulnerabilidades no atendidas en nuestras fronteras agrícolas urbanas.
+
+```{r, fig.width=10, fig.height=5.7, fig.align='center'}
+# Tamaño maximizado para llenar la diapositiva PPT
+knitr::include_graphics("resultados_modelo/grafico_evolucion_antropica.png")
+```
+
+## 📍 La Prueba Reina: El Peligro Acecha la Ciudad
+
+* **El dato crítico:** La inmensa mayoría de las conflagraciones ocurre en un anillo no mayor a **1.5 kilómetros** respecto de asentamientos humanos poblados.
+* *El fuego no se da espontáneamente en medio de un predio aislado: el fuego persigue a la población civil.*
+
+```{r, fig.width=10, fig.height=5.5, fig.align='center'}
+knitr::include_graphics("resultados_modelo/grafico_dist_poblados_incendios.png")
+```
+
+## ⚠️ Nivel de Exposición y Riesgo Poblacional
+
+* No solo es un tema ambiental, es un vector rotundo de salud pública. 
+* El nivel de exposición poblacional nos empuja a la re-priorización urgente del enfoque preventivo de la corporación.
+
+```{r, fig.width=10, fig.height=5.7, fig.align='center'}
+knitr::include_graphics("resultados_modelo/grafico_exposicion_antropica.png")
+```
+
+## 🎯 El Contrataque Institucional (Ruta a Seguir)
+
+1. **🛡️ Blindaje Rural-Urbano (Anillo de 1.5km):** Intensificar el control territorial y los drones en las haciendas periféricas más calientes.
+2. **⚖️ Auditoría Inteligente Top Down:** Enfocar todos los recursos operativos jurídicos en el listado SATICA "Top 10" de áreas reincidentes.
+3. **🤝 Activación Comunitaria:** Integrar a las Juntas de Acción Comunal para formar una red de primera respuesta preventiva que disuada la quema en flagrancia.

@@ -1,26 +1,32 @@
-name: SATICA Centinela Satelital (NASA FIRMS)
+name: SATICA Nube & Sincronización Automática
 
 on:
   schedule:
-    # Corre cada 15 minutos en horas críticas
-    # Hora Colombia (UTC-5): 6:00 AM a 10:00 PM
-    # Equivalente en UTC: 11:00 UTC a 03:00 UTC (día siguiente)
-    - cron: '*/15 11-23,0-3 * * *'
-  workflow_dispatch: # Permite ejecutarlo a mano con el botón "Run workflow"
+    # Corre cada 30 minutos en horas críticas
+    # Hora Colombia (UTC-5): 6:00 AM a 10:00 PM (Equivalente en UTC: 11:00 UTC a 03:00 UTC)
+    - cron: '*/30 11-23,0-3 * * *'
+  push:
+    branches:
+      - master
+  workflow_dispatch: # Permite ejecutarlo a mano desde el botón "Run workflow" en GitHub
 
 jobs:
-  vigilancia:
-    runs-on: ubuntu-22.04   # Ubuntu 22.04 tiene GDAL/GEOS más estables
+  motor-y-despliegues:
+    runs-on: ubuntu-22.04
 
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
       NASA_FIRMS_KEY:     ${{ secrets.NASA_FIRMS_KEY }}
-      SHINY_URL_BASE:     'https://cvcsuroriente.shinyapps.io/satica/'
+      HF_TOKEN:           ${{ secrets.HF_TOKEN }}
+      # URL del portal en GitHub Pages
+      SHINY_URL_BASE:     'https://secasor.github.io/portal/'
 
     steps:
       - name: 📥 Clonar Repositorio
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necesario para hacer push a Hugging Face
 
       - name: 🔧 Instalar dependencias del sistema (GIS completo)
         run: |
@@ -35,21 +41,22 @@ jobs:
             libxml2-dev \
             libfontconfig1-dev \
             libharfbuzz-dev \
-            libfribidi-dev
+            libfribidi-dev \
+            pandoc
           echo "✅ Dependencias del sistema instaladas correctamente."
 
       - name: 🔵 Configurar R 4.4
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.4.0'
-          use-public-rspm: true   # Usa binarios precompilados (mucho más rápido)
+          use-public-rspm: true # Usa binarios de RSPM (ultra-rápido)
 
       - name: 📦 Cache de paquetes R
         uses: actions/cache@v4
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-r-44-firms-v2
-          restore-keys: ${{ runner.os }}-r-44-firms-
+          key: ${{ runner.os }}-r-44-satica-v2.1
+          restore-keys: ${{ runner.os }}-r-44-satica-
 
       - name: 📦 Instalar paquetes R (desde binarios RSPM)
         run: |
@@ -58,19 +65,68 @@ jobs:
               RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest",
               CRAN = "https://cloud.r-project.org"
             ))
-            pkgs <- c("sf", "dplyr", "httr", "stringr", "readr", "janitor")
+            pkgs <- c("sf", "dplyr", "httr", "stringr", "readr", "janitor", "jsonlite", "openxlsx", "rmarkdown", "ggplot2", "visNetwork", "shinyWidgets", "shiny")
             to_install <- pkgs[!pkgs %in% installed.packages()[,"Package"]]
             if (length(to_install)) {
               message("Instalando: ", paste(to_install, collapse=", "))
               install.packages(to_install, Ncpus = 2)
             }
-            # Verificar que se carguen correctamente
-            invisible(lapply(pkgs, function(p) {
-              if (!requireNamespace(p, quietly=TRUE))
-                stop("Falló la carga de: ", p)
-            }))
-            message("✅ Todos los paquetes listos: ", paste(pkgs, collapse=", "))
+            message("✅ Paquetes listos.")
           '
 
-      - name: 🛰️ Ejecutar Centinela Satelital SATICA
-        run: Rscript centinela_satelital.R
+      - name: 🛰️ [1/2] Correr Centinela Satelital (Alertas Telegram)
+        run: |
+          # El centinela se ejecuta para escanear fuegos y notificar al instante a Telegram
+          Rscript centinela_satelital.R
+
+      - name: 🤖 [2/2] Ejecutar Motor SATICA Completo (XGBoost V9 + Consolidación)
+        run: |
+          # Corre el motor central para recalcular semáforos, predicciones de IA y summary JSON
+          Rscript satica_engine.R
+
+      - name: 📊 Compilar Reporte Rmd a HTML Estático
+        run: |
+          # Renderizar el R Markdown a la carpeta www/ para el portal
+          Rscript -e 'rmarkdown::render("reporte.Rmd", output_file = "www/reporte.html")'
+
+      - name: 📂 Estructurar archivos para GitHub Pages
+        run: |
+          # Copiamos bases consolidadas y plantillas generadas a la carpeta pública del portal
+          mkdir -p www/data_master
+          mkdir -p www/resultados_diagnostico
+          
+          # Copiamos archivos con nombres genéricos fijos de descarga
+          cp -f data_master/SATICA_MASTER_v2.2.rds www/data_master/
+          cp -f data_master/data_summary.json www/data_master/
+          cp -f data_master/GOES16_Alertas.csv www/data_master/
+          
+          # Copiamos KML, XLSX y CSV generados por el motor si existen
+          [ -f "data_master/SATICA_Seguimiento_latest.xlsx" ] && cp -f data_master/SATICA_Seguimiento_latest.xlsx www/data_master/ || echo "No XLSX"
+          [ -f "data_master/Plantilla_Visitas_SATICA_latest.csv" ] && cp -f data_master/Plantilla_Visitas_SATICA_latest.csv www/data_master/ || echo "No CSV"
+          [ -f "data_master/SATICA_GIS_latest.kml" ] && cp -f data_master/SATICA_GIS_latest.kml www/data_master/ || echo "No KML"
+          [ -f "resultados_diagnostico/punto_ciego_suroriente.csv" ] && cp -f resultados_diagnostico/punto_ciego_suroriente.csv www/resultados_diagnostico/ || echo "No punto ciego"
+          [ -f "sin_georref_coords.csv" ] && cp -f sin_georref_coords.csv www/ || echo "No manual coords"
+          [ -f "visitas_cvc.csv" ] && cp -f visitas_cvc.csv www/ || echo "No visitas"
+          
+          # Renombrar reporte principal para visor del portal
+          cp -f www/reporte.html www/index.html || echo "Generando index estático"
+
+      - name: 🚀 Desplegar Portal Estático a GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: www # Carpeta que contiene la landing index.html y los datos estructurados
+          branch: gh-pages # Rama de hosting estático público de GitHub
+          clean: false # Evitar sobreescribir configuraciones previas
+
+      - name: 📤 Sincronizar Aplicación con Hugging Face Spaces
+        if: env.HF_TOKEN != ''
+        run: |
+          # Vinculamos y pusheamos el Dockerfile y código R de Shiny a Hugging Face
+          git config --global user.email "satica-bot@cvc.gov.co"
+          git config --global user.name "SATICA Cloud Bot"
+          
+          # Hugging Face requiere un remote de git seguro
+          git remote add hf https://satica-cvc:$HF_TOKEN@huggingface.co/spaces/satica-cvc/satica || true
+          
+          # Hacemos push forzado para actualizar la app interactiva en vivo
+          git push hf master:main --force

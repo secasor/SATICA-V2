@@ -8,107 +8,120 @@ library(DT)
 library(shinyWidgets)
 library(visNetwork)
 
-# --- CSS personalizado para replicar el diseño de referencia ---
+# --- CSS personalizado con Estética Stitch/Google (Glassmorphism) ---
 css_custom <- "
-  /* Sidebar fondo oscuro */
-  .main-sidebar, .sidebar { background-color: #1a2d45 !important; }
-  .sidebar-dark-primary { background-color: #1a2d45 !important; }
-  .nav-sidebar .nav-item .nav-link { color: #c8d8e8 !important; }
-  .nav-sidebar .nav-item .nav-link.active, .nav-sidebar .nav-item .nav-link:hover {
-    background-color: #243d5a !important; color: #ffffff !important;
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap');
+
+  :root {
+    --bg-dark: #0f172a;
+    --sidebar-bg: rgba(15, 23, 42, 0.85);
+    --accent-blue: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-orange: #f59e0b;
+    --accent-red: #ef4444;
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   }
 
-  /* Header */
-  .main-header .navbar { background-color: #1a2d45 !important; border: none; }
-  .main-header .brand-link { background-color: #1a2d45 !important; border: none; }
-  .brand-link .brand-text { color: #ffffff !important; font-size: 14px !important; }
+  /* Background principal */
+  .content-wrapper, .wrapper { background-color: var(--bg-dark) !important; }
+  body { font-family: 'Outfit', sans-serif !important; background-color: var(--bg-dark) !important; color: #f8fafc; }
 
-  /* User panel */
-  .user-panel { border-bottom: 1px solid #2e4a6a; padding: 10px 15px; }
-  .user-panel .info { color: #c8d8e8; }
-  .user-panel .info a { color: #ffffff; font-weight: 700; }
+  /* Sidebar Glassmorphism */
+  .main-sidebar, .sidebar { 
+    background: var(--sidebar-bg) !important; 
+    backdrop-filter: blur(16px) !important;
+    border-right: 1px solid var(--glass-border) !important;
+  }
+  .sidebar-dark-primary { background-color: transparent !important; }
 
-  /* Botón de haciendas buscador */
-  #buscar_hda { background: rgba(255,255,255,.1) !important; color: white !important;
-                border: 1px solid rgba(255,255,255,.2) !important; border-radius: 4px;
-                font-size: 12px; }
-  #buscar_hda::placeholder { color: rgba(255,255,255,.4) !important; }
+  /* Header Premium */
+  .main-header .navbar { 
+    background: rgba(15, 23, 42, 0.8) !important; 
+    backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid var(--glass-border) !important; 
+  }
+  
+  /* Brand Link */
+  .brand-link { background: transparent !important; border: none !important; }
+  .brand-link .brand-text { font-weight: 600 !important; color: #fff !important; }
 
-  /* Botones de acción en sidebar */
-  .sidebar-btns .btn { width: 100%; font-weight: bold; margin-bottom: 10px; }
+  /* Nav Links */
+  .nav-sidebar .nav-item .nav-link { 
+    color: #94a3b8 !important; 
+    border-radius: 12px !important;
+    margin: 4px 10px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .nav-sidebar .nav-item .nav-link:hover, .nav-sidebar .nav-item .nav-link.active {
+    background: rgba(56, 189, 248, 0.15) !important;
+    color: var(--accent-blue) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  /* Value Box Estilo 'Elevated Card' */
+  .small-box { 
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--glass-shadow) !important;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    /* Soften the bg color natively provided by bs4Dash */
+    background-image: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.1) 100%);
+    backdrop-filter: blur(8px);
+  }
+  .small-box:hover { transform: translateY(-5px); }
+  .small-box .inner h3 { 
+    font-size: 2.5rem !important; 
+    font-weight: 900 !important; 
+    letter-spacing: -1px;
+    margin-bottom: 5px !important;
+    color: #ffffff !important;
+  }
+  .small-box .inner p { color: #f1f5f9 !important; font-weight: 400 !important; }
+
+  /* Inputs Premium */
+  .main-sidebar .bootstrap-select > .dropdown-toggle,
+  .main-sidebar .form-control {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+  }
+
+  /* Botones Glass */
+  .sidebar-btns .btn {
+    border-radius: 12px !important;
+    border: 1px solid var(--glass-border) !important;
+    padding: 10px !important;
+    font-size: 13px !important;
+    margin-bottom: 8px !important;
+    transition: all 0.2s ease;
+    width: 100% !important;
+    display: block !important;
+    text-align: left !important;
+  }
+  .sidebar-btns .btn:hover { filter: brightness(1.2); transform: scale(1.02); }
+
+  /* Leaflet full vision y Controles */
+  #mapa { border-radius: 20px !important; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+  .leaflet-top { margin-top: 50px !important; }
+  .leaflet-left { margin-left: 10px !important; }
+
+  /* DataTables Dark Mode fix */
+  table.dataTable, .dataTables_wrapper { color: #f8fafc !important; }
+  .dataTable thead th, .dataTable thead td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; color: #cbd5e1 !important; }
+  .dataTable tbody tr { background-color: transparent !important; }
+  .dataTable tbody td { border-top: 1px solid rgba(255,255,255,0.05) !important; }
+  .dataTable tbody tr:hover { background-color: rgba(255,255,255,0.05) !important; color: #fff !important;}
+  .dataTables_info, .dataTables_length, .dataTables_filter, .dataTables_paginate { color: #cbd5e1 !important; }
+
 
   /* Bullets de color en el menú */
-  .menu-icon-dot { display: inline-block; width: 14px; height: 14px;
-                   border-radius: 3px; margin-right: 8px; vertical-align: middle; }
-
-  /* Value boxes */
-  .small-box { cursor: pointer !important; }
-
-  /* Forzar leaflet al 100% de la caja */
-  .leaflet { z-index: 0 !important; }
-
-    /* Resultados del buscador */
-  .buscar-resultado-item { padding: 5px 8px; border-radius: 4px; margin-bottom: 3px;
-                            background: rgba(255,255,255,.08); cursor: pointer; }
-
-  /* ── Botón Vista General: contener dentro del sidebar ── */
-  #reset { width: 100% !important; box-sizing: border-box !important;
-           display: block !important; margin: 0 !important; }
-
-      /* ── Value boxes: números grandes (AdminLTE3 bs4Dash) ── */
-  .small-box .inner h3,
-  .small-box h3 {
-    font-size: 4rem !important;
-    font-weight: 900 !important;
-    line-height: 1.1 !important;
-    margin-bottom: 0 !important;
+  .menu-icon-dot { 
+    display: inline-block; width: 14px; height: 14px;
+    border-radius: 4px; margin-right: 8px; vertical-align: middle; 
   }
-  .small-box .inner p,
-  .small-box p {
-    font-size: 1.05rem !important;
-    font-weight: 600 !important;
-  }
-  .small-box { min-height: 100px !important; }
-
-
-
-
-    /* ── pickerInput en sidebar: fondo oscuro + texto blanco ── */
-  .main-sidebar .bootstrap-select > .dropdown-toggle.btn-light,
-  .main-sidebar .bootstrap-select > .dropdown-toggle,
-  .main-sidebar .bootstrap-select .btn,
-  .main-sidebar .selectpicker,
-  .main-sidebar .SumoSelect > .CaptionCont {
-    background-color: rgba(255,255,255,.10) !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(255,255,255,.3) !important;
-    border-radius: 4px !important;
-  }
-  .main-sidebar .filter-option-inner-inner,
-  .main-sidebar .filter-option {
-    color: #ffffff !important;
-  }
-  .main-sidebar .bootstrap-select .dropdown-menu.inner > li > a,
-  .main-sidebar .bootstrap-select .dropdown-menu.inner > li > a span {
-    color: #c8d8e8 !important;
-  }
-  .main-sidebar .bootstrap-select .dropdown-menu {
-    background-color: #1a2d45 !important;
-    border: 1px solid rgba(255,255,255,.15) !important;
-  }
-  .main-sidebar .bootstrap-select .dropdown-item:hover,
-  .main-sidebar .bootstrap-select .dropdown-menu.inner > li.selected > a {
-    background-color: #243d5a !important;
-    color: #fff !important;
-  }
-  .main-sidebar .form-control,
-  .main-sidebar input[type=text] {
-    background: rgba(255,255,255,.10) !important;
-    color: #fff !important;
-    border: 1px solid rgba(255,255,255,.25) !important;
-  }
-  .main-sidebar label { color: #b8c7ce !important; font-size: 12px; }
-
 "
 
 # Icono personalizado con cuadrado de color
@@ -117,45 +130,23 @@ menu_icon <- function(color) {
 }
 
 ui <- dashboardPage(
-  dark = NULL,
-  scrollToTop = TRUE,
+  dark = TRUE,
+  scrollToTop = FALSE,
   title = "SATICA — Sistema de Alertas Tempranas",
 
   # ─── HEADER ───────────────────────────────────────────────────────────────
   dashboardHeader(
     title = dashboardBrand(
-      title = "SATICA — Sistema de Alertas Tempranas",
-      color = "primary"
+      title = "SATICA V2.0",
+      color = "primary",
+      opacity = 0.8
     ),
-    # Badges en el header usando la estructura correcta de bs4Dash
     rightUi = tagList(
       bs4DropdownMenu(
         type = "notifications",
-        badgeStatus = "info",
-        icon = icon("bell"),
-        headerText = "DAR Suroriente"
-      ),
-      tags$li(
-        class = "nav-item dropdown",
-        tags$a(
-          class = "nav-link dropdown-toggle",
-          href = "#",
-          `data-toggle` = "dropdown",
-          tags$div(
-            style = "display:inline-block; background:#0d1f5c; border-radius:8px;
-                     padding:3px 10px 5px; border-bottom:4px solid #2d7a2d;
-                     color:#fff; font-weight:900; font-style:italic;
-                     font-size:18px; font-family:Arial,sans-serif; line-height:1.2;",
-            "CVC"
-          )
-        ),
-        tags$div(
-          class = "dropdown-menu dropdown-menu-right",
-          tags$span(
-            class = "dropdown-item-text",
-            "CVC — Corporación Autónoma Regional del Valle del Cauca"
-          )
-        )
+        badgeStatus = "danger",
+        icon = icon("fire-alt"),
+        headerText = "Alertas Recientes"
       )
     )
   ),
@@ -164,32 +155,18 @@ ui <- dashboardPage(
   dashboardSidebar(
     skin = "dark",
     status = "primary",
+    elevation = 0,
 
-    # Panel de usuario (div manual: bs4Dash sidebarUserPanel no acepta text=)
+    # Sidebar User Panel simplificado
     div(
-      class = "user-panel d-flex pb-3 mb-2",
-      style = "border-bottom: 1px solid #2e4a6a; padding: 12px 15px;",
-      div(
-        class = "image",
-        tags$img(
-          src   = "https://ui-avatars.com/api/?name=SOR&background=1abc9c&color=fff&rounded=true&size=40",
-          style = "width:40px; height:40px; border-radius:50%; margin-right:10px;"
-        )
+      style = "padding: 20px 15px; text-align: center;",
+      tags$img(
+        src   = "https://ui-avatars.com/api/?name=CVC&background=38bdf8&color=fff&rounded=true&size=64",
+        style = "width:64px; height:64px; border-radius:16px; margin-bottom:10px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);"
       ),
-      div(
-        class = "info",
-        tags$a(
-          href  = "#",
-          style = "color:#ffffff; font-weight:700; font-size:14px; display:block;",
-          "DAR Suroriente"
-        ),
-        tags$span(
-          style = "color:#b8c7ce; font-size:12px;",
-          "CVC \u2014 Incendios 2026"
-        )
-      )
+      tags$h5("SATICA", style = "color:#fff; font-weight:900; margin-bottom:0; letter-spacing:2px;"),
+      tags$small("DAR SURORIENTE", style = "color:#64748b; font-weight:600;")
     ),
-    hr(style = "border-color: #2e4a6a; margin: 5px 0;"),
 
     # Menú principal con bullets de color
     sidebarMenu(
@@ -277,11 +254,10 @@ ui <- dashboardPage(
       uiOutput("ui_buscar_resultados")
     ),
     div(
-      style = "padding: 0 12px 12px; box-sizing: border-box; width: 100%;",
+      style = "padding: 0 12px 15px 12px; width: 100%; box-sizing: border-box;",
       actionButton("reset", "Vista General",
         icon = icon("globe-americas"),
-        style = "background-color:#17a2b8; color:#fff; border:none;
-                 width:100%; font-weight:bold; display:block; box-sizing:border-box;"
+        style = "background-color:#17a2b8; color:#fff; border:none; width:100%; font-weight:bold; display:block; margin:0 auto; border-radius:12px; padding:10px;"
       )
     )
   ),
@@ -331,7 +307,7 @@ ui <- dashboardPage(
         fluidRow(
           box(
             width = 12, title = "Haciendas Prioritarias (Ventana Crítica/Alta)",
-            status = "warning", solidHeader = FALSE, collapsible = TRUE,
+            status = "warning", solidHeader = FALSE, collapsible = TRUE, collapsed = TRUE,
             DTOutput("tabla_top")
           )
         )

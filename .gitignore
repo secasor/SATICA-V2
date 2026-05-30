@@ -25,10 +25,17 @@ reporte.html
 *.pdf
 
 # --- Carpetas con datos geográficos y de salida ---
-capas/
-data_estatica/
+capas/*
+!capas/Caña_SOR_OK.*
+!capas/Corregimientos.*
+!capas/restricciones/
+data_estatica/*
+!data_estatica/GEO_CACHE_SATICA.rds
+!data_estatica/REST_CACHE_SATICA.RData
 data_master/
-modelo_rds/
+modelo_rds/*
+!modelo_rds/xgb_model_V9_regresion_geoespacial.ubj
+!modelo_rds/v9_features_geoespacial.rds
 reportes/
 reportes_alerta/
 reportes_cosecha/

@@ -225,7 +225,25 @@ master_final <- master_final %>%
 # --- 5.5. INFERENCIA ALGORÍTMICA (XGBOOST V9 GEOESPACIAL) ---
 # ==============================================================================
 message("🤖 Inicializando Cerebro Predictivo (XGBoost V9 Geoespacial)...")
-modelo_v9 <- tryCatch(readRDS("modelo_rds/xgb_model_V9_regresion_geoespacial.rds"), error = function(e) NULL)
+modelo_v9 <- tryCatch({
+  ruta_ubj <- "modelo_rds/xgb_model_V9_regresion_geoespacial.ubj"
+  ruta_rds <- "modelo_rds/xgb_model_V9_regresion_geoespacial.rds"
+  if (file.exists(ruta_ubj)) {
+    xgboost::xgb.load(ruta_ubj)
+  } else if (file.exists(ruta_rds)) {
+    message("   -> ⚠️  Modelo en formato .rds detectado. Intentando migrar a .ubj...")
+    m <- readRDS(ruta_rds)
+    xgboost::xgb.save(m, ruta_ubj)
+    message("   -> ✅ Modelo migrado a formato .ubj portable. Próximo inicio será más rápido.")
+    xgboost::xgb.load(ruta_ubj)
+  } else {
+    message("   -> ❌ No se encontró el modelo V9.")
+    NULL
+  }
+}, error = function(e) {
+  message("   -> ❌ No se pudo cargar el modelo XGBoost: ", e$message)
+  NULL
+})
 diccionario_v9 <- tryCatch(readRDS("modelo_rds/v9_features_geoespacial.rds"), error = function(e) NULL)
 matriz_distancias <- tryCatch(readRDS("data_master/matriz_distancias_cana.rds"), error = function(e) NULL)
 
@@ -324,6 +342,33 @@ master_final <- master_final %>%
 # --- 6. GUARDADO Y CIERRE (BLINDAJE 2: SINCRONIZACIÓN ÚNICA) ---
 if(!dir.exists("data_master")) dir.create("data_master")
 saveRDS(master_final, "data_master/SATICA_MASTER_v2.2.rds")
+
+# --- GENERAR DATA_SUMMARY.JSON PARA PORTAL WEB ---
+tryCatch({
+  if (requireNamespace("jsonlite", quietly = TRUE)) {
+    # Calcular visitas de éxito de forma consistente
+    visitas_path <- "visitas_cvc.csv"
+    total_exitos <- 0
+    if (file.exists(visitas_path)) {
+      df_v <- read.csv(visitas_path, stringsAsFactors = FALSE)
+      total_exitos <- length(unique(df_v$cod_hda_key))
+    }
+    
+    summary_data <- list(
+      last_update = format(Sys.time(), "%Y-%m-%d %H:%M COT", tz = "America/Bogota"),
+      active_fires_24h = sum(master_final$Satelite_Fuego == TRUE, na.rm = TRUE),
+      goes_alerts_1h = sum(master_final$GOES_Fuego == TRUE, na.rm = TRUE),
+      critical_count = sum(master_final$riesgo == "CRITICO", na.rm = TRUE),
+      success_count = total_exitos
+    )
+    jsonlite::write_json(summary_data, "data_master/data_summary.json", auto_unbox = TRUE, pretty = TRUE)
+    message("📊 data_summary.json generado exitosamente para el portal web.")
+  } else {
+    message("⚠️ jsonlite no está disponible para exportar JSON.")
+  }
+}, error = function(e) {
+  message("⚠️ No se pudo generar el data_summary.json: ", e$message)
+})
 
 message("\n==========================================================")
 message("✅ PROCESO EXITOSO: MASTER V2.4 GENERADO BAJO REGLAS DE BLINDAJE")

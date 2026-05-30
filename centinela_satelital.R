@@ -50,35 +50,65 @@ if (nrow(alertas_df) == 0) {
 # =============================================================================
 # 3. EXTRAER COORDENADAS Y RIESGO DE LA BASE MAESTRA
 # =============================================================================
-# Cargar la capa espacial básica
-cana_path <- normalizePath(list.files("capas", pattern = "SOR_OK\\.shp$", full.names = TRUE)[1])
-cana <- st_read(cana_path, quiet = TRUE) %>%
-  janitor::clean_names() %>%
-  st_transform(4326)
+# Cargar la capa espacial básica con control total de fallos
+cana <- tryCatch({
+  cana_path <- tryCatch(
+    normalizePath(list.files("capas", pattern = "SOR_OK\\.shp$",
+                              full.names = TRUE, recursive = TRUE)[1]),
+    error = function(e) NA
+  )
+  if (is.na(cana_path) || !file.exists(cana_path)) stop("No existe el Shapefile SOR_OK.shp")
+  st_read(cana_path, quiet = TRUE) %>%
+    janitor::clean_names() %>%
+    st_transform(4326)
+}, error = function(e) {
+  message("⚠️  Aviso: SOR_OK.shp no detectado físicamente o error al leer. Usando redundancia de coordenadas.")
+  NULL
+})
 
-cana_centros <- suppressWarnings(st_centroid(cana))
-coords <- as.data.frame(st_coordinates(cana_centros))
-cana_spatial <- st_drop_geometry(cana) %>%
-  mutate(
-    LAT = coords$Y,
-    LON = coords$X,
-    hda_raw = toupper(stringr::str_replace_all(as.character(dplyr::coalesce(!!!dplyr::select(., dplyr::matches("^hda$|^cod$|^codigo$")))), "[^0-9A-Za-z_]", "")),
-    ing_raw = toupper(as.character(dplyr::coalesce(!!!dplyr::select(., dplyr::matches("^ing$|^ingenio$"))))),
-    ing_clean = dplyr::case_when(
-      grepl("INCAUCA", ing_raw) ~ "CA",
-      grepl("MAYAGUEZ", ing_raw) ~ "MY",
-      grepl("MARIA LUISA", ing_raw) ~ "ML",
-      grepl("CASTILLA", ing_raw) ~ "CC",
-      grepl("PROVIDENCIA", ing_raw) ~ "PR",
-      grepl("MANUELITA", ing_raw) ~ "MN",
-      grepl("PICHICHI", ing_raw) ~ "PC",
-      grepl("CABA", ing_raw) ~ "CB",
-      grepl("RIOPAILA", ing_raw) ~ "RP",
-      TRUE ~ ing_raw
-    ),
-    cod_unico = paste(ing_clean, stringr::str_pad(hda_raw, width = 6, side = "left", pad = "0"), sep = "_")
-  ) %>%
-  distinct(cod_unico, .keep_all = TRUE)
+# Extraer coordenadas para el radar
+cana_spatial <- tryCatch({
+  if (is.null(cana)) stop("Usa respaldo de Master")
+  cana_centros <- suppressWarnings(st_centroid(cana))
+  coords <- as.data.frame(st_coordinates(cana_centros))
+  st_drop_geometry(cana) %>%
+    mutate(
+      LAT = coords$Y,
+      LON = coords$X,
+      hda_raw = toupper(stringr::str_replace_all(as.character(dplyr::coalesce(!!!dplyr::select(., dplyr::matches("^hda$|^cod$|^codigo$")))), "[^0-9A-Za-z_]", "")),
+      ing_raw = toupper(as.character(dplyr::coalesce(!!!dplyr::select(., dplyr::matches("^ing$|^ingenio$"))))),
+      ing_clean = dplyr::case_when(
+        grepl("INCAUCA", ing_raw) ~ "CA",
+        grepl("MAYAGUEZ", ing_raw) ~ "MY",
+        grepl("MARIA LUISA", ing_raw) ~ "ML",
+        grepl("CASTILLA", ing_raw) ~ "CC",
+        grepl("PROVIDENCIA", ing_raw) ~ "PR",
+        grepl("MANUELITA", ing_raw) ~ "MN",
+        grepl("PICHICHI", ing_raw) ~ "PC",
+        grepl("CABA", ing_raw) ~ "CB",
+        grepl("RIOPAILA", ing_raw) ~ "RP",
+        TRUE ~ ing_raw
+      ),
+      cod_unico = paste(ing_clean, stringr::str_pad(hda_raw, width = 6, side = "left", pad = "0"), sep = "_")
+    ) %>%
+    distinct(cod_unico, .keep_all = TRUE)
+}, error = function(e) {
+  message("  🛰️  Cargando coordenadas de respaldo del Master RDS...")
+  respaldo_path <- "data_master/SATICA_MASTER_v2.2.rds"
+  if (file.exists(respaldo_path)) {
+    tmp_m <- readRDS(respaldo_path)
+    tmp_m %>%
+      mutate(
+        cod_unico = as.character(cod_hda_key),
+        LAT = coalesce(lat, 3.5),
+        LON = coalesce(lon, -76.3)
+      ) %>%
+      select(cod_unico, LAT, LON) %>%
+      distinct(cod_unico, .keep_all = TRUE)
+  } else {
+    data.frame(cod_unico = character(), LAT = numeric(), LON = numeric())
+  }
+})
 
 # Cargar master RDS para sacar estado de riesgo
 master_rds_path <- "data_master/SATICA_MASTER_v2.2.rds"

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Técnico - IPs y Licencias Miniconda, R y RStudio - CVC SATICA V2.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', Arial, sans-serif; color: #1a1a2e; line-height: 1.6; padding: 40px 60px; background: #fff; font-size: 11pt; }
+  @media print { body { padding: 20px 40px; font-size: 10pt; } .page-break { page-break-before: always; } }
+  h1 { font-size: 20pt; color: #0d47a1; border-bottom: 3px solid #0d47a1; padding-bottom: 10px; margin-bottom: 5px; }
+  h2 { font-size: 14pt; color: #1565c0; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #1565c0; padding-left: 10px; }
+  h3 { font-size: 12pt; color: #1976d2; margin-top: 18px; margin-bottom: 8px; }
+  .header-meta { color: #555; font-size: 10pt; margin-bottom: 20px; }
+  .header-meta strong { color: #333; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 18px 0; font-size: 10pt; }
+  th { background: #1565c0; color: #fff; padding: 8px 10px; text-align: left; font-weight: 600; }
+  td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) { background: #f5f7fa; }
+  code { background: #e8eaf6; padding: 2px 6px; border-radius: 3px; font-family: 'Consolas', monospace; font-size: 9.5pt; }
+  .alert { padding: 12px 16px; border-radius: 6px; margin: 12px 0; font-size: 10pt; }
+  .alert-warning { background: #fff3e0; border-left: 4px solid #ff9800; }
+  .alert-info { background: #e3f2fd; border-left: 4px solid #2196f3; }
+  .alert-success { background: #e8f5e9; border-left: 4px solid #4caf50; }
+  .alert-danger { background: #fce4ec; border-left: 4px solid #e53935; }
+  .alert strong { display: block; margin-bottom: 4px; }
+  pre { background: #263238; color: #eeffff; padding: 14px 18px; border-radius: 6px; font-size: 9pt; overflow-x: auto; margin: 10px 0; }
+  .logo-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .badge { display: inline-block; background: #4caf50; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge-free { background: #4caf50; }
+  .section-divider { border: none; border-top: 2px solid #e0e0e0; margin: 25px 0; }
+  footer { margin-top: 30px; padding-top: 15px; border-top: 2px solid #1565c0; font-size: 9pt; color: #666; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>Informe Técnico: Direcciones IP, Dominios de Red y Licencias</h1>
+<p class="header-meta">
+  <strong>Miniconda / Anaconda, Lenguaje R y RStudio</strong><br>
+  Corporación Autónoma Regional del Valle del Cauca – CVC | DAR Suroriente<br>
+  Sistema SATICA V2.0 | <strong>Fecha:</strong> 1 de mayo de 2026
+</p>
+
+<hr class="section-divider">
+
+<!-- ============================================================ -->
+<h2>1. Dominios y Direcciones IP de Miniconda / Anaconda</h2>
+
+<p>Miniconda se conecta a los siguientes dominios para descargar e instalar paquetes. Estos servicios usan CDN (Cloudflare / AWS), por lo que <strong>las IPs son dinámicas</strong>.</p>
+
+<h3>1.1 Dominios Principales</h3>
+<table>
+  <tr><th>#</th><th>Dominio</th><th>Propósito</th><th>Puerto</th><th>Protocolo</th></tr>
+  <tr><td>1</td><td><code>repo.anaconda.com</code></td><td>Repositorio principal de paquetes conda</td><td>443</td><td>HTTPS</td></tr>
+  <tr><td>2</td><td><code>conda.anaconda.org</code></td><td>Canales de paquetes conda (conda-forge, etc.)</td><td>443</td><td>HTTPS</td></tr>
+  <tr><td>3</td><td><code>anaconda.org</code></td><td>Portal principal de Anaconda</td><td>443</td><td>HTTPS</td></tr>
+  <tr><td>4</td><td><code>anaconda.com</code></td><td>Sitio web y servicios de Anaconda</td><td>443</td><td>HTTPS</td></tr>
+  <tr><td>5</td><td><code>binstar-cio-packages-prod.s3.amazonaws.com</code></td><td>Almacenamiento AWS S3 de paquetes</td><td>443</td><td>HTTPS</td></tr>
+</table>
+
+<h3>1.2 Direcciones IP Actuales (DNS — 1 de mayo de 2026)</h3>
+
+<div class="alert alert-warning">
+  <strong>⚠️ Advertencia:</strong> Las IPs son dinámicas (CDN). Se recomienda configurar el firewall por <strong>nombre de dominio (FQDN)</strong>, no por IP fija.
+</div>
+
+<table>
+  <tr><th>Dominio</th><th>Tipo</th><th>Dirección IP</th></tr>
+  <tr><td rowspan="2"><code>repo.anaconda.com</code></td><td>IPv4</td><td><code>104.16.32.241</code>, <code>104.16.191.158</code></td></tr>
+  <tr><td>IPv6</td><td><code>2606:4700::6810:20f1</code>, <code>2606:4700::6810:bf9e</code></td></tr>
+  <tr><td rowspan="2"><code>conda.anaconda.org</code> / <code>anaconda.org</code></td><td>IPv4</td><td><code>104.19.144.37</code>, <code>104.19.145.37</code></td></tr>
+  <tr><td>IPv6</td><td><code>2606:4700::6813:9025</code>, <code>2606:4700::6813:9125</code></td></tr>
+</table>
+
+<hr class="section-divider">
+
+<!-- ============================================================ -->
+<h2>2. Dominios y Direcciones IP para R y RStudio</h2>
+
+<h3>2.1 Dominios para Descarga e Instalación</h3>
+<table>
+  <tr><th>#</th><th>Dominio</th><th>Propósito</th><th>Puerto</th></tr>
+  <tr><td>1</td><td><code>cran.r-project.org</code></td><td>Repositorio CRAN principal de R</td><td>443</td></tr>
+  <tr><td>2</td><td><code>cran.rstudio.com</code></td><td>Mirror CRAN de Posit/RStudio</td><td>443</td></tr>
+  <tr><td>3</td><td><code>cdn.posit.co</code></td><td>CDN de descarga de productos Posit</td><td>443</td></tr>
+  <tr><td>4</td><td><code>cdn.rstudio.com</code></td><td>CDN de descarga de RStudio (legacy)</td><td>443</td></tr>
+  <tr><td>5</td><td><code>download2.rstudio.org</code></td><td>Servidor de descarga de RStudio</td><td>443</td></tr>
+  <tr><td>6</td><td><code>packagemanager.posit.co</code></td><td>Gestor de paquetes R de Posit</td><td>443</td></tr>
+  <tr><td>7</td><td><code>p3m.dev</code></td><td>Public Posit Package Manager</td><td>443</td></tr>
+  <tr><td>8</td><td><code>posit.co</code></td><td>Sitio web principal de Posit</td><td>443</td></tr>
+  <tr><td>9</td><td><code>bioconductor.org</code></td><td>Paquetes Bioconductor para R</td><td>443</td></tr>
+</table>
+
+<h3>2.2 Direcciones IP Actuales (DNS — 1 de mayo de 2026)</h3>
+<table>
+  <tr><th>Dominio</th><th>IPs IPv4</th></tr>
+  <tr><td><code>cran.rstudio.com</code></td><td><code>3.174.238.128</code>, <code>3.174.238.44</code>, <code>3.174.238.35</code>, <code>3.174.238.94</code></td></tr>
+  <tr><td><code>cdn.posit.co</code></td><td><code>54.230.144.48</code>, <code>54.230.144.85</code>, <code>54.230.144.36</code>, <code>54.230.144.43</code></td></tr>
+  <tr><td><code>download2.rstudio.org</code></td><td><code>18.155.252.95</code>, <code>18.155.252.23</code>, <code>18.155.252.13</code>, <code>18.155.252.25</code></td></tr>
+  <tr><td><code>packagemanager.posit.co</code></td><td><code>16.59.247.202</code>, <code>18.119.242.250</code>, <code>3.151.189.146</code></td></tr>
+</table>
+
+<hr class="section-divider">
+
+<!-- ============================================================ -->
+<h2>3. Dominios Complementarios (Python / GitHub)</h2>
+<table>
+  <tr><th>Dominio</th><th>Propósito</th><th>IPs IPv4 Actuales</th><th>Puerto</th></tr>
+  <tr><td><code>pypi.org</code></td><td>Índice de paquetes Python</td><td><code>151.101.0.223</code>, <code>151.101.64.223</code>, <code>151.101.128.223</code>, <code>151.101.192.223</code></td><td>443</td></tr>
+  <tr><td><code>files.pythonhosted.org</code></td><td>Archivos de paquetes Python</td><td><code>151.101.0.223</code>, <code>151.101.64.223</code>, <code>151.101.128.223</code>, <code>151.101.192.223</code></td><td>443</td></tr>
+  <tr><td><code>github.com</code></td><td>Repositorios de código fuente</td><td><code>140.82.113.4</code></td><td>443</td></tr>
+  <tr><td><code>raw.githubusercontent.com</code></td><td>Contenido raw de GitHub</td><td><code>185.199.108-111.133</code></td><td>443</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<!-- ============================================================ -->
+<h2>4. Resumen de Puertos y Protocolos</h2>
+
+<div class="alert alert-info">
+  <strong>ℹ️ Nota:</strong> Todos los dominios requieren únicamente tráfico <strong>HTTPS saliente (outbound) en el puerto 443</strong>. No se requieren puertos adicionales ni tráfico entrante (inbound).
+</div>
+
+<table>
+  <tr><th>Protocolo</th><th>Puerto</th><th>Dirección</th><th>Uso</th></tr>
+  <tr><td>HTTPS</td><td><strong>443</strong></td><td>Salida (Outbound)</td><td>Descarga de paquetes, instaladores y actualizaciones</td></tr>
+  <tr><td>DNS</td><td>53</td><td>Salida (Outbound)</td><td>Resolución de nombres de dominio</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<h2>5. Licencia del Lenguaje R</h2>
+
+<table>
+  <tr><th>Aspecto</th><th>Detalle</th></tr>
+  <tr><td>Software</td><td>R – Lenguaje y entorno para computación estadística</td></tr>
+  <tr><td>Tipo de Licencia</td><td><strong>GNU General Public License (GPL)</strong></td></tr>
+  <tr><td>Versiones</td><td>GPL v2 (junio 1991) o GPL v3 (junio 2007), a elección del usuario</td></tr>
+  <tr><td>Costo</td><td><span class="badge badge-free">GRATUITO — $0 USD</span></td></tr>
+  <tr><td>Uso Comercial</td><td>✅ Permitido</td></tr>
+  <tr><td>Uso Gubernamental</td><td>✅ Permitido</td></tr>
+  <tr><td>Redistribución</td><td>✅ Permitida bajo los términos de la GPL</td></tr>
+  <tr><td>Modificación</td><td>✅ Permitida bajo los términos de la GPL</td></tr>
+  <tr><td>Proyecto Oficial</td><td>GNU Project (Free Software Foundation)</td></tr>
+  <tr><td>Sitio Web</td><td>https://www.r-project.org/</td></tr>
+</table>
+
+<h3>Libertades garantizadas por la GPL:</h3>
+<ol>
+  <li><strong>Libertad 0:</strong> Ejecutar el programa para cualquier propósito.</li>
+  <li><strong>Libertad 1:</strong> Estudiar cómo funciona y adaptarlo.</li>
+  <li><strong>Libertad 2:</strong> Redistribuir copias.</li>
+  <li><strong>Libertad 3:</strong> Mejorar el programa y publicar las mejoras.</li>
+</ol>
+
+<div class="alert alert-success">
+  <strong>✅ Certificación:</strong> R es completamente gratuito para uso institucional, gubernamental, académico y comercial. La CVC puede instalar, usar y distribuir R libremente en todos sus equipos sin restricción legal ni pago alguno.
+</div>
+
+<hr class="section-divider">
+
+<!-- ============================================================ -->
+<h2>6. Licencia de RStudio Desktop</h2>
+
+<table>
+  <tr><th>Aspecto</th><th>Detalle</th></tr>
+  <tr><td>Software</td><td>RStudio Desktop – IDE para R</td></tr>
+  <tr><td>Desarrollador</td><td><strong>Posit PBC</strong> (anteriormente RStudio, PBC)</td></tr>
+  <tr><td>Edición Gratuita</td><td>RStudio Desktop Open Source Edition</td></tr>
+  <tr><td>Tipo de Licencia</td><td><strong>GNU Affero General Public License v3 (AGPL v3)</strong></td></tr>
+  <tr><td>Costo</td><td><span class="badge badge-free">GRATUITO — $0 USD</span></td></tr>
+  <tr><td>Uso Comercial</td><td>✅ Permitido</td></tr>
+  <tr><td>Uso Gubernamental</td><td>✅ Permitido</td></tr>
+  <tr><td>Redistribución</td><td>✅ Permitida bajo los términos de la AGPL v3</td></tr>
+  <tr><td>Sitio Web</td><td>https://posit.co/downloads/</td></tr>
+</table>
+
+<h3>Ediciones Disponibles:</h3>
+<table>
+  <tr><th>Edición</th><th>Licencia</th><th>Costo</th><th>Recomendación</th></tr>
+  <tr><td><strong>RStudio Desktop Open Source</strong></td><td>AGPL v3</td><td><strong>Gratuito</strong></td><td>✅ <strong>Recomendado para la CVC</strong></td></tr>
+  <tr><td>RStudio Desktop Pro</td><td>Comercial</td><td>Pago (anual)</td><td>Soporte empresarial prioritario</td></tr>
+</table>
+
+<div class="alert alert-success">
+  <strong>✅ Certificación:</strong> RStudio Desktop Open Source es completamente gratuito para uso institucional. La CVC puede instalarlo en todos sus equipos sin costo alguno. La edición Open Source incluye todas las funcionalidades necesarias para SATICA V2.0.
+</div>
+
+<hr class="section-divider">
+
+<!-- ============================================================ -->
+<h2>7. Notas Importantes</h2>
+
+<div class="alert alert-danger">
+  <strong>⚠️ Sobre las Direcciones IP:</strong> Las IPs listadas son dinámicas y fueron resueltas el 1 de mayo de 2026. Los servicios usan CDN (Cloudflare/AWS CloudFront), por lo que pueden cambiar sin aviso. <strong>Configurar el firewall por nombre de dominio (FQDN), no por IP.</strong>
+</div>
+
+<h3>7.1 Lista Consolidada de Dominios para TI</h3>
+<pre>
+# Miniconda / Anaconda
+repo.anaconda.com
+conda.anaconda.org
+anaconda.org
+anaconda.com
+
+# R / RStudio / Posit
+cran.r-project.org
+cran.rstudio.com
+cdn.posit.co
+cdn.rstudio.com
+download2.rstudio.org
+packagemanager.posit.co
+p3m.dev
+posit.co
+bioconductor.org
+
+# Python (complementario)
+pypi.org
+files.pythonhosted.org
+
+# GitHub (complementario)
+github.com
+raw.githubusercontent.com
+</pre>
+
+<div class="alert alert-info">
+  <strong>ℹ️ Nota Final:</strong> Tanto R como RStudio Desktop Open Source son software libre y de código abierto, publicados bajo licencias GNU reconocidas internacionalmente. Su uso no genera ningún costo de licenciamiento para la CVC.
+</div>
+
+<footer>
+  Documento generado para soporte institucional — CVC DAR Suroriente — Sistema SATICA V2.0 — Mayo 2026
+</footer>
+
+</body>
+</html>

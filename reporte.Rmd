@@ -1,5 +1,5 @@
 ---
-title: "BOLETÍN DE ALERTAS TEMPRANAS"
+title: "SATICA — BOLETÍN DE ALERTAS TEMPRANAS N° 5"
 params:
   datos: !r NA
 output: html_document
@@ -300,88 +300,7 @@ if(nrow(ficha_maestra) > 0) {
 ```
 ---
 
-<div class="saltar-pagina"></div>
 
-## 5. Haciendas sin Georreferenciación (Seguimiento en Campo)
-
-Esta sección lista los predios cañeros de la DAR Suroriente que tienen historial de incendio en los reportes de cosecha pero cuya geometría aún no está disponible en el sistema cartográfico. Se incluye el semáforo de riesgo calculado estadísticamente para orientar la priorización del trabajo de georreferenciación en campo.
-
-```{r singeorref_tabla, results='asis'}
-if (exists("SIN_GEORREF") && nrow(SIN_GEORREF) > 0) {
-
-  df_sg <- SIN_GEORREF %>%
-    arrange(
-      factor(RIESGO, levels = c("CRITICO","ALTO","OBSERVACION","BAJO","SIN GEORREF")),
-      desc(n_registros)
-    ) %>%
-    mutate(
-      TXT_ULT  = ifelse(!is.na(FECHA_ULT_I),    as.character(FECHA_ULT_I),    "Sin datos"),
-      TXT_CICLO_SG = ifelse(!is.na(FECHA_ESTIMADA), as.character(FECHA_ESTIMADA), "N/A"),
-      TXT_COORDS_SG = ifelse(Tiene_Coords,
-                              paste(round(LAT,4), round(LON,4), sep=", "),
-                              "Pendiente")
-    )
-
-  n_total   <- nrow(df_sg)
-  n_critico <- sum(df_sg$RIESGO == "CRITICO", na.rm=TRUE)
-  n_alto    <- sum(df_sg$RIESGO == "ALTO",    na.rm=TRUE)
-  n_coords  <- sum(df_sg$Tiene_Coords,        na.rm=TRUE)
-
-  cat(paste0(
-    "<p style='padding:10px; background-color:#FDEDEC; border-left:5px solid #E74C3C; border-radius:3px;'>",
-    "<b>Balance haciendas sin georreferenciación:</b> Se identifican <b>", n_total,
-    "</b> haciendas con historial de incendio en la DAR Suroriente sin geometría en el sistema. ",
-    "De estas, <b>", n_critico + n_alto,
-    "</b> presentan riesgo CRÍTICO o ALTO según ciclo estadístico calculado, y <b>",
-    n_coords, "</b> ya han sido georreferenciadas manualmente.</p>"
-  ))
-
-  municipios_sg <- sort(unique(df_sg$Municipio_Excel[df_sg$Municipio_Excel != "SIN DATO"]))
-
-  for (mun in municipios_sg) {
-    cat(paste("\n### Municipio:", mun, "\n"))
-    df_m <- df_sg %>%
-      filter(Municipio_Excel == mun) %>%
-      select(Hacienda = Nombre_Reporte, Corregimiento = Correg_Excel,
-             Ingenio = Ingenio, Riesgo = RIESGO,
-             `Último Evento` = TXT_ULT, `Próximo Ciclo` = TXT_CICLO_SG,
-             Eventos = n_registros, Coordenadas = TXT_COORDS_SG)
-
-    cat(as.character(
-      kable(df_m) %>%
-        kable_styling(bootstrap_options = c("striped","hover","condensed"),
-                      full_width = T, font_size = 10) %>%
-        row_spec(0, background = "#922B21", color = "white") %>%
-        column_spec(4, bold = T, color = "white",
-                    background = case_when(
-                      df_m$Riesgo == "CRITICO"     ~ "#CC0000",
-                      df_m$Riesgo == "ALTO"        ~ "#FF8C00",
-                      df_m$Riesgo == "OBSERVACION" ~ "#F1C40F",
-                      df_m$Riesgo == "SIN GEORREF" ~ "#95A5A6",
-                      TRUE                         ~ "#2ECC71"
-                    )) %>%
-        column_spec(5, width = "80px", extra_css = "white-space: nowrap;") %>%
-        column_spec(6, width = "80px", extra_css = "white-space: nowrap;") %>%
-        column_spec(7, width = "50px", bold = T) %>%
-        column_spec(8, bold = T, color = "black", extra_css = "white-space: nowrap; font-size:0.9em;")
-    ))
-    cat("\n<br>\n")
-  }
-
-  sin_mun_sg <- df_sg %>% filter(Municipio_Excel == "SIN DATO")
-  if (nrow(sin_mun_sg) > 0) {
-    cat("\n### Municipio no identificado\n")
-    cat(as.character(
-      kable(sin_mun_sg %>% select(Hacienda=Nombre_Reporte, Ingenio, Riesgo=RIESGO, Eventos=n_registros)) %>%
-        kable_styling(bootstrap_options=c("striped","condensed"), full_width=F, font_size=10) %>%
-        row_spec(0, background="#922B21", color="white")
-    ))
-  }
-
-} else {
-  cat("### ✅ No se han identificado haciendas sin georreferenciación para este ciclo.")
-}
-```
 
 ---
 

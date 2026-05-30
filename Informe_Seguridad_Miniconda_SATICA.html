@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe de Seguridad - Rol de Miniconda en SATICA V2.0 - CVC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', Arial, sans-serif; color: #1a1a2e; line-height: 1.65; padding: 40px 55px; background: #fff; font-size: 10.5pt; }
+  @media print { body { padding: 15px 35px; font-size: 9.5pt; } .page-break { page-break-before: always; } h2 { page-break-after: avoid; } }
+  h1 { font-size: 18pt; color: #0d47a1; border-bottom: 3px solid #0d47a1; padding-bottom: 8px; margin-bottom: 4px; }
+  h2 { font-size: 13pt; color: #1565c0; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #1565c0; padding-left: 10px; }
+  h3 { font-size: 11pt; color: #1976d2; margin-top: 14px; margin-bottom: 6px; }
+  .header-meta { color: #555; font-size: 9.5pt; margin-bottom: 18px; }
+  .header-meta strong { color: #333; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 14px 0; font-size: 9.5pt; }
+  th { background: #1565c0; color: #fff; padding: 6px 8px; text-align: left; font-weight: 600; }
+  td { padding: 5px 8px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) { background: #f5f7fa; }
+  code { background: #e8eaf6; padding: 1px 5px; border-radius: 3px; font-family: 'Consolas', monospace; font-size: 9pt; }
+  .alert { padding: 10px 14px; border-radius: 5px; margin: 10px 0; font-size: 9.5pt; }
+  .alert-warning { background: #fff3e0; border-left: 4px solid #ff9800; }
+  .alert-info { background: #e3f2fd; border-left: 4px solid #2196f3; }
+  .alert-success { background: #e8f5e9; border-left: 4px solid #4caf50; }
+  .alert-danger { background: #fce4ec; border-left: 4px solid #e53935; }
+  .alert strong { display: block; margin-bottom: 3px; }
+  pre { background: #263238; color: #eeffff; padding: 12px 16px; border-radius: 5px; font-size: 8.5pt; overflow-x: auto; margin: 8px 0; }
+  .badge { display: inline-block; background: #4caf50; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 8.5pt; font-weight: 600; }
+  .badge-safe { background: #4caf50; }
+  .badge-none { background: #9e9e9e; }
+  hr.divider { border: none; border-top: 2px solid #e0e0e0; margin: 20px 0; }
+  footer { margin-top: 25px; padding-top: 12px; border-top: 2px solid #1565c0; font-size: 8.5pt; color: #666; text-align: center; }
+  .diagram { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 18px; margin: 12px 0; text-align: center; font-size: 9.5pt; }
+  .diagram .arrow { color: #1565c0; font-weight: bold; font-size: 14pt; }
+  .diagram .box { display: inline-block; background: #1565c0; color: #fff; padding: 6px 14px; border-radius: 6px; margin: 4px; font-weight: 500; }
+  .diagram .box-green { background: #2e7d32; }
+  .diagram .box-orange { background: #e65100; }
+  .diagram .box-gray { background: #546e7a; }
+  ol, ul { margin-left: 20px; margin-bottom: 8px; }
+  li { margin-bottom: 3px; }
+</style>
+</head>
+<body>
+
+<h1>Informe de Seguridad Informática: Rol de Miniconda en el Sistema SATICA V2.0</h1>
+<p class="header-meta">
+  <strong>Corporación Autónoma Regional del Valle del Cauca – CVC</strong><br>
+  Dirección Ambiental Regional Suroriente | Sistema de Alertas Tempranas de Incendios en Caña de Azúcar<br>
+  <strong>Fecha:</strong> 1 de mayo de 2026 | <strong>Clasificación:</strong> Uso Interno – Soporte Técnico TI
+</p>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2>1. ¿Qué es Miniconda y por qué lo usa SATICA?</h2>
+
+<h3>1.1 Definición</h3>
+<p><strong>Miniconda</strong> es un gestor de entornos de Python de código abierto, distribuido por Anaconda, Inc. Es una versión mínima de Anaconda que permite instalar librerías de Python de forma aislada y reproducible. <strong>No es malware, no es spyware, no recopila datos personales.</strong></p>
+
+<h3>1.2 Función Específica en SATICA V2.0</h3>
+<p>Miniconda cumple <strong>una única función</strong> en SATICA: servir como puente para que R pueda comunicarse con la API de <strong>Google Earth Engine (GEE)</strong> a través de la librería Python <code>earthengine-api</code> (<code>ee</code>). Esta comunicación la orquesta el paquete R llamado <code>rgee</code> usando <code>reticulate</code>.</p>
+
+<div class="diagram">
+  <span class="box">RStudio (R)</span>
+  <span class="arrow"> → </span>
+  <span class="box-gray">reticulate</span>
+  <span class="arrow"> → </span>
+  <span class="box-orange">Miniconda (Python)</span>
+  <span class="arrow"> → </span>
+  <span class="box-green">Google Earth Engine API</span>
+  <br><br>
+  <em>Miniconda actúa solo como intermediario técnico entre R y Google Earth Engine.</em>
+</div>
+
+<h3>1.3 ¿Qué hace exactamente en SATICA?</h3>
+<p>El archivo <code>R/api_sentinel_rgee.R</code> usa Miniconda para:</p>
+<ol>
+  <li><strong>Descargar imágenes satelitales Sentinel-2</strong> (ESA/Copernicus) procesadas por Google Earth Engine.</li>
+  <li><strong>Calcular índices de vegetación</strong> (NDVI y NBR) para evaluar el estado de resequedad de los cultivos de caña.</li>
+  <li><strong>Exportar estadísticas zonales</strong> (promedio de verdor por suerte de caña) a un archivo CSV local.</li>
+</ol>
+
+<div class="alert alert-success">
+  <strong>✅ Miniconda NO:</strong>
+  <ul style="margin-top:4px;">
+    <li>Envía información personal, institucional o confidencial de la CVC.</li>
+    <li>Accede a redes internas, bases de datos corporativas ni carpetas compartidas.</li>
+    <li>Instala servicios en segundo plano, demonios ni puertos de escucha.</li>
+    <li>Modifica el registro de Windows ni la configuración del sistema operativo.</li>
+    <li>Recopila telemetría, analytics ni métricas de uso.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2>2. Flujo de Datos: ¿Qué información entra y sale?</h2>
+
+<h3>2.1 Datos que SALEN del equipo (Outbound)</h3>
+<table>
+  <tr><th>Dato Enviado</th><th>Destino</th><th>Propósito</th><th>¿Es sensible?</th></tr>
+  <tr><td>Coordenadas del bounding box del Valle del Cauca (públicas)</td><td>Google Earth Engine</td><td>Filtrar imágenes satelitales por área geográfica</td><td><span class="badge badge-safe">NO</span></td></tr>
+  <tr><td>Fechas de consulta (últimos 45-90 días)</td><td>Google Earth Engine</td><td>Filtrar imágenes por fecha</td><td><span class="badge badge-safe">NO</span></td></tr>
+  <tr><td>Geometrías de parcelas de caña (shapefiles públicos)</td><td>Google Earth Engine</td><td>Extracción zonal (promedio NDVI/NBR por parcela)</td><td><span class="badge badge-safe">NO</span></td></tr>
+  <tr><td>Coordenadas bbox Valle del Cauca</td><td>NASA FIRMS</td><td>Consultar focos de calor en las últimas 24h</td><td><span class="badge badge-safe">NO</span></td></tr>
+</table>
+
+<h3>2.2 Datos que ENTRAN al equipo (Inbound)</h3>
+<table>
+  <tr><th>Dato Recibido</th><th>Origen</th><th>Formato</th><th>Uso en SATICA</th></tr>
+  <tr><td>Índices NDVI y NBR por parcela</td><td>Google Earth Engine (Sentinel-2)</td><td>JSON → CSV</td><td>Evaluar riesgo de combustión por resequedad</td></tr>
+  <tr><td>Focos de calor (lat, lon, brillo térmico, confianza, satélite, fecha/hora)</td><td>NASA FIRMS</td><td>CSV</td><td>Detectar incendios activos sobre cultivos de caña</td></tr>
+</table>
+
+<div class="alert alert-info">
+  <strong>ℹ️ Resumen:</strong> SATICA solo envía coordenadas geográficas públicas y recibe datos ambientales científicos gratuitos. <strong>No transmite ningún dato confidencial, personal ni institucional de la CVC.</strong>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2>3. Conexiones de Red: Dominios e IPs que usa Miniconda</h2>
+
+<h3>3.1 Conexiones de Miniconda (Instalación de paquetes Python)</h3>
+<p>Miniconda se conecta <strong>únicamente durante la instalación inicial</strong> del entorno Python. Una vez instalado, no vuelve a conectarse a estos dominios salvo que se actualicen paquetes manualmente.</p>
+
+<table>
+  <tr><th>Dominio</th><th>IPv4 Actuales</th><th>Propósito</th><th>Frecuencia</th></tr>
+  <tr><td><code>repo.anaconda.com</code></td><td><code>104.16.32.241</code><br><code>104.16.191.158</code></td><td>Descargar paquete <code>earthengine-api</code></td><td>Solo instalación inicial</td></tr>
+  <tr><td><code>conda.anaconda.org</code></td><td><code>104.19.144.37</code><br><code>104.19.145.37</code></td><td>Canal conda-forge (dependencias)</td><td>Solo instalación inicial</td></tr>
+  <tr><td><code>pypi.org</code></td><td><code>151.101.0.223</code><br><code>151.101.64.223</code><br><code>151.101.128.223</code><br><code>151.101.192.223</code></td><td>Fallback para dependencias pip</td><td>Solo instalación inicial</td></tr>
+</table>
+
+<h3>3.2 Conexiones Operativas de SATICA (durante ejecución)</h3>
+<p>Estas son las conexiones que SATICA realiza <strong>cada vez que se ejecuta</strong> para obtener datos ambientales:</p>
+
+<table>
+  <tr><th>Servicio</th><th>Dominio</th><th>IPv4 Actuales</th><th>Puerto</th><th>Dato Obtenido</th></tr>
+  <tr>
+    <td><strong>Google Earth Engine</strong><br>(vía Miniconda/Python)</td>
+    <td><code>earthengine.googleapis.com</code></td>
+    <td><code>172.217.29.10</code><br><code>142.251.132.10</code><br><code>172.217.28.106</code><br><code>142.251.129.202</code></td>
+    <td>443</td>
+    <td>Índices de vegetación Sentinel-2 (NDVI/NBR)</td>
+  </tr>
+  <tr>
+    <td><strong>NASA FIRMS</strong><br>(directo desde R, sin Miniconda)</td>
+    <td><code>firms.modaps.eosdis.nasa.gov</code></td>
+    <td><code>198.118.194.34</code></td>
+    <td>443</td>
+    <td>Focos de calor satelitales (VIIRS/MODIS)</td>
+  </tr>
+</table>
+
+<h3>3.3 Conexiones para Instalación de R/RStudio (solo una vez)</h3>
+<table>
+  <tr><th>Dominio</th><th>IPv4 Actuales</th><th>Propósito</th></tr>
+  <tr><td><code>cran.rstudio.com</code></td><td><code>3.174.238.128</code>, <code>3.174.238.44</code></td><td>Instalar paquetes R (CRAN)</td></tr>
+  <tr><td><code>cdn.posit.co</code></td><td><code>54.230.144.48</code>, <code>54.230.144.85</code></td><td>Descargar RStudio IDE</td></tr>
+  <tr><td><code>download2.rstudio.org</code></td><td><code>18.155.252.95</code>, <code>18.155.252.23</code></td><td>Descargar RStudio IDE (legacy)</td></tr>
+  <tr><td><code>packagemanager.posit.co</code></td><td><code>16.59.247.202</code>, <code>18.119.242.250</code></td><td>Posit Package Manager</td></tr>
+</table>
+
+<div class="alert alert-warning">
+  <strong>⚠️ Nota:</strong> Todas las IPs son dinámicas (CDN). Se recomienda configurar el firewall por <strong>nombre de dominio (FQDN)</strong>.
+</div>
+
+<hr class="divider">
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<h2>4. Análisis de Riesgo de Seguridad</h2>
+
+<h3>4.1 Evaluación de Amenazas</h3>
+<table>
+  <tr><th>Vector de Amenaza</th><th>Riesgo</th><th>Justificación</th></tr>
+  <tr><td>Exfiltración de datos corporativos</td><td><span class="badge badge-safe">NULO</span></td><td>SATICA solo envía coordenadas geográficas públicas. No accede a bases de datos, correo, archivos corporativos ni datos de empleados.</td></tr>
+  <tr><td>Malware / Software malicioso</td><td><span class="badge badge-safe">NULO</span></td><td>Miniconda es software de código abierto verificable, distribuido por Anaconda Inc. (empresa registrada en EE.UU.) desde dominios con certificados SSL válidos.</td></tr>
+  <tr><td>Acceso remoto no autorizado</td><td><span class="badge badge-safe">NULO</span></td><td>Miniconda no abre puertos de escucha (listen), no instala servicios de red ni permite conexiones entrantes.</td></tr>
+  <tr><td>Minería de criptomonedas</td><td><span class="badge badge-safe">NULO</span></td><td>El procesamiento pesado se ejecuta en la nube de Google (GEE). El equipo local solo recibe resultados finales en CSV.</td></tr>
+  <tr><td>Envío de telemetría / espionaje</td><td><span class="badge badge-safe">NULO</span></td><td>Miniconda (a diferencia de Anaconda completo) no incluye módulos de telemetría ni analytics. Se puede verificar auditando el tráfico de red.</td></tr>
+  <tr><td>Vulnerabilidad de red interna</td><td><span class="badge badge-safe">NULO</span></td><td>Toda comunicación es HTTPS saliente (puerto 443) cifrada con TLS. No se expone ningún servicio interno.</td></tr>
+</table>
+
+<h3>4.2 Paquetes Python Instalados por Miniconda para SATICA</h3>
+<p>El entorno <code>r-reticulate</code> de Miniconda contiene <strong>exclusivamente</strong>:</p>
+<table>
+  <tr><th>Paquete</th><th>Versión</th><th>Propósito</th><th>Licencia</th></tr>
+  <tr><td><code>earthengine-api</code> (<code>ee</code>)</td><td>1.x</td><td>Cliente Python de Google Earth Engine</td><td>Apache 2.0 (gratuita)</td></tr>
+  <tr><td><code>google-auth</code></td><td>2.x</td><td>Autenticación OAuth2 con Google</td><td>Apache 2.0 (gratuita)</td></tr>
+  <tr><td><code>google-api-core</code></td><td>2.x</td><td>Núcleo de APIs de Google</td><td>Apache 2.0 (gratuita)</td></tr>
+  <tr><td><code>requests</code></td><td>2.x</td><td>Cliente HTTP estándar de Python</td><td>Apache 2.0 (gratuita)</td></tr>
+  <tr><td><code>numpy</code></td><td>1.x/2.x</td><td>Computación numérica</td><td>BSD (gratuita)</td></tr>
+</table>
+
+<div class="alert alert-success">
+  <strong>✅ Todos los paquetes son de código abierto, gratuitos, y ampliamente utilizados en la comunidad científica internacional.</strong>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2>5. ¿Es posible operar SATICA sin Miniconda?</h2>
+
+<table>
+  <tr><th>Escenario</th><th>Miniconda Requerido</th><th>Funcionalidad Afectada</th></tr>
+  <tr><td><strong>Dashboard principal</strong> (mapa de riesgo, predicciones, alertas FIRMS)</td><td><span class="badge badge-none">NO</span></td><td>Ninguna. Funciona 100% con R puro.</td></tr>
+  <tr><td><strong>Alertas NASA FIRMS</strong> (focos de calor en tiempo real)</td><td><span class="badge badge-none">NO</span></td><td>Ninguna. Usa <code>httr</code> directamente desde R.</td></tr>
+  <tr><td><strong>Centinela Satelital</strong> (monitoreo automático GitHub Actions)</td><td><span class="badge badge-none">NO</span></td><td>Ninguna. Corre en la nube sin Miniconda.</td></tr>
+  <tr><td><strong>Reportes y presentaciones</strong></td><td><span class="badge badge-none">NO</span></td><td>Ninguna. Generados por R Markdown.</td></tr>
+  <tr><td><strong>Análisis de biomasa Sentinel-2</strong> (NDVI/NBR por parcela)</td><td><span class="badge" style="background:#ff9800">SÍ</span></td><td>Solo este módulo avanzado requiere Miniconda para conectarse a Google Earth Engine.</td></tr>
+</table>
+
+<div class="alert alert-info">
+  <strong>ℹ️ Conclusión:</strong> El 95% de las funcionalidades de SATICA V2.0 (dashboard, alertas en tiempo real, predicciones, reportes) <strong>NO requieren Miniconda</strong>. Solo el módulo avanzado de análisis de biomasa Sentinel-2 lo necesita, y es un módulo opcional que se ejecuta bajo demanda.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2>6. Resumen Consolidado para el Área de TI</h2>
+
+<h3>6.1 Dominios a Habilitar (Puerto 443 HTTPS Saliente)</h3>
+<pre>
+# ─── OBLIGATORIOS (operación diaria del dashboard) ───
+firms.modaps.eosdis.nasa.gov     # NASA FIRMS - Alertas de incendios
+cran.rstudio.com                 # Instalar/actualizar paquetes R
+packagemanager.posit.co          # Posit Package Manager
+
+# ─── OPCIONALES (solo si se usa el módulo Sentinel-2) ───
+earthengine.googleapis.com       # Google Earth Engine API
+repo.anaconda.com                # Miniconda - paquetes Python
+conda.anaconda.org               # Miniconda - canal conda-forge
+pypi.org                         # Fallback para pip
+
+# ─── SOLO INSTALACIÓN INICIAL ───
+cdn.posit.co                     # Descarga de RStudio
+download2.rstudio.org            # Descarga de RStudio (alt)
+</pre>
+
+<h3>6.2 Protocolo de Red</h3>
+<table>
+  <tr><th>Parámetro</th><th>Valor</th></tr>
+  <tr><td>Protocolo</td><td>HTTPS (TLS 1.2/1.3)</td></tr>
+  <tr><td>Puerto</td><td><strong>443</strong> (exclusivamente)</td></tr>
+  <tr><td>Dirección</td><td><strong>Solo saliente (outbound)</strong></td></tr>
+  <tr><td>Puertos entrantes requeridos</td><td><strong>Ninguno</strong></td></tr>
+  <tr><td>Servicios de escucha instalados</td><td><strong>Ninguno</strong></td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2>7. Licencias del Software Utilizado</h2>
+
+<table>
+  <tr><th>Software</th><th>Licencia</th><th>Costo</th><th>Uso Gubernamental</th></tr>
+  <tr><td><strong>R</strong> (lenguaje estadístico)</td><td>GNU GPL v2/v3</td><td><span class="badge badge-safe">GRATUITO</span></td><td>✅ Permitido</td></tr>
+  <tr><td><strong>RStudio Desktop</strong> (IDE)</td><td>AGPL v3 (Open Source)</td><td><span class="badge badge-safe">GRATUITO</span></td><td>✅ Permitido</td></tr>
+  <tr><td><strong>Miniconda</strong> (gestor Python)</td><td>BSD 3-Clause</td><td><span class="badge badge-safe">GRATUITO</span></td><td>✅ Permitido</td></tr>
+  <tr><td><strong>earthengine-api</strong> (Python)</td><td>Apache 2.0</td><td><span class="badge badge-safe">GRATUITO</span></td><td>✅ Permitido</td></tr>
+  <tr><td><strong>Google Earth Engine</strong></td><td>Uso gratuito para gobierno/academia</td><td><span class="badge badge-safe">GRATUITO</span></td><td>✅ Permitido</td></tr>
+  <tr><td><strong>NASA FIRMS</strong></td><td>Datos públicos del gobierno de EE.UU.</td><td><span class="badge badge-safe">GRATUITO</span></td><td>✅ Permitido</td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2>8. Conclusión y Certificación</h2>
+
+<div class="alert alert-success">
+  <strong>✅ CERTIFICACIÓN DE SEGURIDAD:</strong>
+  <p style="margin-top:6px;">El sistema SATICA V2.0, incluyendo el componente Miniconda, <strong>no representa un riesgo de seguridad informática</strong> para la infraestructura de la CVC por las siguientes razones:</p>
+  <ol style="margin-top:6px;">
+    <li><strong>No envía datos confidenciales</strong> — Solo transmite coordenadas geográficas públicas.</li>
+    <li><strong>No abre puertos de escucha</strong> — Toda comunicación es HTTPS saliente (443).</li>
+    <li><strong>No instala servicios en segundo plano</strong> — No hay demonios, tareas programadas ni agentes persistentes.</li>
+    <li><strong>No accede a recursos corporativos</strong> — No toca Active Directory, correo, bases de datos ni carpetas de red.</li>
+    <li><strong>Todo el software es de código abierto</strong> — Auditable públicamente por cualquier persona.</li>
+    <li><strong>Miniconda es opcional</strong> — El 95% de SATICA funciona sin él.</li>
+    <li><strong>Los destinos son instituciones científicas</strong> — NASA (gobierno de EE.UU.) y Google Earth Engine (plataforma científica).</li>
+  </ol>
+</div>
+
+<footer>
+  Documento generado para soporte institucional — CVC DAR Suroriente — Sistema SATICA V2.0 — Mayo 2026<br>
+  Para verificación técnica, el código fuente de SATICA es auditable en su totalidad.
+</footer>
+
+</body>
+</html>

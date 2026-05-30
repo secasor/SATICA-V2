@@ -1,0 +1,49 @@
+---
+title: "🚀 SATICA 2.0"
+subtitle: "El Salto Cuántico en Monitoreo Ambiental Predictivo"
+author: "Corporación Autónoma Regional del Valle del Cauca (CVC)"
+date: "`r Sys.Date()`"
+output: powerpoint_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, dpi = 300)
+```
+
+## 💡 ¿Qué es SATICA 2.0? Más que un mapa, un Cerebro Institucional.
+
+* **El Pasado (Reactivo):** Veíamos el incendio, apagábamos la emergencia y enviábamos notificaciones tardías.
+* **El Presente (Predictivo y Autónomo):** SATICA 2.0 utiliza Inteligencia Geoespacial para advertirnos **DÓNDE** y **CUÁNDO** (± 1 mes de margen de error) ocurrirá el fuego.
+* **Integración Satelital Pura:** Captamos flagrancia minuto a minuto procesando señales de 3 satélites (GOES-16, VIIRS, Sentinel-2).
+
+## ⚙️ La Magia Detrás de SATICA: El Sistema "Smart Sync"
+
+* Por primera vez, los tableros analíticos "piensan solos".
+* **Sincronía Continua:** Sin botones mágicos, sin archivos manuales. La App comprueba cada 30 minutos su vigencia conectándose vía API a NASA FIRMS y actualizando su matriz.
+* Si un fuego es reportado en el espacio, en cuestión de minutos tintinea de rojo en las pantallas de nuestros inspectores regionales.
+
+## 🎯 Máxima Precisión: ¿Confiamos en los Datos?
+
+* El algoritmo ha aprendido de 6 años de historiales de quemas.
+* SATICA prioriza la asertividad: *Si SATICA dice que un área está Crtítica, la prioridad operativa debe ser absoluta.*
+* Solo alertamos cuando la ventana de vulnerabilidad (dif_meses) está en un nivel extremo de estallido.
+
+```{r, fig.width=10, fig.height=5.2, fig.align='center'}
+# Si tienes una excelente grafica del rendimiento del modelo, úsala aquí.
+knitr::include_graphics("resultados_modelo/grafico_confianza_semaforo.png")
+```
+
+## 📊 Medición del Éxito: Avance del Modelo Predictivo
+
+* Las curvas de evaluación (Precision y Recall) del ciclo 2025 consolidan que es matemáticamente superior a vigilar a ciegas.
+* Optimiza el presupuesto enviando gasolina y personal donde realmente importan.
+
+```{r, fig.width=10, fig.height=5.5, fig.align='center'}
+knitr::include_graphics("resultados_modelo/grafico_precision_niveles.png")
+```
+
+## 🚀 El Futuro Ya Llegó (Ruta de Operación Terrestre)
+
+1. **📱 Módulo en Terreno:** Descarga en 1 solo clic del "Boletín Premium de Auditoría" listando a las haciendas en riesgo inminente en PDF y Excel, listos para actas.
+2. **📡 GPS Vivo (Ancla Operativa):** Seguimiento a incidentes remotos sin polígono catastral, visualizando las huellas dejadas por nuestro propio personal.
+3. **El Veredicto:** La inteligencia artificial y satelital no reemplazan el olfato de campo de la CVC, lo exalta y le confiere estatus militar y legal de prevención ambiental.

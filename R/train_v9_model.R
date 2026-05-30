@@ -121,7 +121,7 @@ message(sprintf("   -> RMSE Global: %.1f días", rmse))
 if(!dir.exists("modelo_rds")) dir.create("modelo_rds")
 
 # Persistir modelo predictivo
-saveRDS(xgb_model_V9, "modelo_rds/xgb_model_V9_regresion_geoespacial.rds")
+xgb.save(xgb_model_V9, "modelo_rds/xgb_model_V9_regresion_geoespacial.ubj")
 
 # ¡CRÍTICO! Persistir el "ADN" de las columnas 
 diccionario_columnas <- colnames(dummy_matrix)

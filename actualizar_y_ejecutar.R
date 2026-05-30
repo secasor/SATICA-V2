@@ -6,12 +6,12 @@
 
 message("🚀 INICIANDO ACTUALIZACIÓN INTEGRAL DE SATICA 2.0...")
 
-reticulate::use_condaenv("r-reticulate", required = TRUE)
 
-# 0. Verificación de Dependencias Críticas
-if (!requireNamespace("lwgeom", quietly = TRUE)) {
-  message("⚠️ ADVERTENCIA: No tienes el paquete 'lwgeom' instalado.")
-  message("👉 Ejecuta: install.packages('lwgeom') para que la App pueda iniciar.")
+# 0. Verificación e Instalación de Dependencias Críticas
+if (file.exists("instalar_dependencias.R")) {
+  source("instalar_dependencias.R")
+} else {
+  message("⚠️ ADVERTENCIA: No se encontró 'instalar_dependencias.R'. Procure tener todas las librerías instaladas.")
 }
 
 # 1. Actualización de Alertas Térmicas (NASA FIRMS)

@@ -56,7 +56,7 @@ server <- function(input, output, session) {
         ),
         tags$div(
           style = "font-size:10px; color:rgba(255,255,255,.5);",
-          r$MUNICIPIO, " · ",
+          r$MUNICIPIO, " \u00b7 ",
           tags$span(style = paste0("color:", r$COL, "; font-weight:600;"), r$RIESGO)
         )
       )
@@ -68,9 +68,9 @@ server <- function(input, output, session) {
   # Observer para centrar mapa al seleccionar resultado del buscador
   observeEvent(input$buscar_sel, {
     cod_key <- input$buscar_sel
-    hda_sf  <- DATOS_OFICIALES %>% filter(COD_HDA_KEY == cod_key)
+    hda_sf  <- datos_r() %>% filter(COD_HDA_KEY == cod_key)
     if (nrow(hda_sf) > 0) {
-      r      <- hda_sf %>% st_drop_geometry() %>% slice(1)
+      r      <- hda_sf %>% st_drop_geometry() %>% dplyr::slice(1)
       centro <- suppressWarnings(st_point_on_surface(hda_sf[1, ]))
       coords <- st_coordinates(centro)
       leafletProxy("mapa") %>%
@@ -79,15 +79,24 @@ server <- function(input, output, session) {
         addPopups(
           lng = coords[1], lat = coords[2],
           popup = paste0(
-            "<div style='font-family:sans-serif;font-size:13px;min-width:200px;'>",
-            "<b>", r$HDA_LABEL, "</b><br>",
-            "<span style='color:", r$COL, ";font-weight:bold;'>", r$RIESGO, "</span>",
-            " · ", r$MUNICIPIO, "<br>",
-            "<small>", r$COD_HDA_KEY, "</small>",
+            "<div style='font-family:\"Outfit\", sans-serif; padding:12px; min-width:280px; background:#0f172a; color:white; border-radius:12px; border:1px solid rgba(255,255,255,0.1); shadow:0 10px 30px rgba(0,0,0,0.5);'>",
+            "<div style='border-bottom: 2px solid ", r$COL, "; padding-bottom:10px; margin-bottom:10px;'>",
+            "<h4 style='margin:0; font-weight:900; letter-spacing:-0.5px;'>", r$HDA_LABEL, "</h4>",
+            "<span style='font-size:11px; opacity:0.6;'>C\u00d3DIGO: ", r$COD_HDA_KEY, "</span></div>",
+            "<div style='display:grid; grid-template-columns: 1fr 1fr; gap:8px; font-size:12px;'>",
+            "<div><b style='color:#94a3b8;'>INGENIO</b><br>", r$INGENIO_FULL, "</div>",
+            "<div><b style='color:#94a3b8;'>MUNICIPIO</b><br>", r$MUNICIPIO, "</div>",
+            "<div><b style='color:#94a3b8;'>HISTORIAL</b><br>", r$N_EVENTOS, " incendios</div>",
+            "<div><b style='color:#94a3b8;'>\u00daLTIMO</b><br>", r$TXT_ULTIMO, "</div>",
+            "</div>",
+            "<div style='margin-top:10px; padding:10px; background:rgba(255,255,255,0.05); border-radius:8px;'>",
+            "<b>RIESGO:</b> <span style='color:", r$COL, "; font-weight:900;'>", r$RIESGO, "</span><br>",
+            "<b>PR\u00d3XIMO ESTIMADO:</b> ", r$TXT_ESTIMADO, "<br>",
+            "<b>ESTATUS BIOMASA:</b> ", r$ESTADO_BIOMASA, "</div>",
+            "<div style='margin-top:10px; font-size:11px; font-style:italic; opacity:0.7;'>\ud83d\udee1\ufe0f CVC: ", r$ESTADO_CONTROL, "</div>",
             "</div>"
           )
         )
-      updateTabItems(session, "tabs", "dash")
     }
   }, ignoreInit = TRUE)
   
@@ -109,13 +118,17 @@ server <- function(input, output, session) {
     }
   }, ignoreInit = TRUE)
   
-  # --- LECTURA DEL ARCHIVO DE VISITAS (Único CSV Liviano) ---
+  # --- LECTURA DEL ARCHIVO DE VISITAS (\u00danico CSV Liviano) ---
   datos_visitas <- reactive({
     ruta_csv <- "visitas_cvc.csv"
     df_v <- NULL
     
-    if (file.exists(ruta_csv)) {
-      df_v <- tryCatch({ read.csv(ruta_csv, stringsAsFactors = FALSE) %>% clean_names() }, error = function(e) NULL)
+    if (.ON_CLOUD) {
+      df_v <- tryCatch({ read.csv(url("https://secasor.github.io/portal/visitas_cvc.csv"), stringsAsFactors = FALSE) %>% clean_names() }, error = function(e) NULL)
+    } else {
+      if (file.exists(ruta_csv)) {
+        df_v <- tryCatch({ read.csv(ruta_csv, stringsAsFactors = FALSE) %>% clean_names() }, error = function(e) NULL)
+      }
     }
     
     if(!is.null(df_v) && all(c("cod_hda_key", "fecha_visita") %in% names(df_v))) {
@@ -126,8 +139,9 @@ server <- function(input, output, session) {
         ) %>%
         group_by(COD_HDA_KEY) %>%
         summarise(
+          HISTORIAL_VISITAS = paste(sort(format(unique(FECHA_VISITA), "%Y-%m-%d")), collapse = " | "),
           FECHA_VISITA = max(FECHA_VISITA, na.rm = TRUE),
-          RADICADO = if("radicado" %in% names(df_v)) last(radicado) else "S/N",
+          RADICADO = if("radicado" %in% names(df_v)) { val <- trimws(as.character(last(radicado))); ifelse(is.na(val) | val == "", "S/N", val) } else "S/N",
           .groups = "drop"
         )
       return(df_procesado)
@@ -136,7 +150,7 @@ server <- function(input, output, session) {
     return(data.frame(COD_HDA_KEY = character(), FECHA_VISITA = as.Date(character()), RADICADO = character()))
   })
   
-  # --- PROCESAMIENTO ESTRATÉGICO Y MATRIZ TEMPORAL ---
+  # --- PROCESAMIENTO ESTRAT\u00c9GICO Y MATRIZ TEMPORAL ---
   centros_global <- suppressWarnings(st_point_on_surface(DATOS_OFICIALES))
   coords_global <- as.data.frame(st_coordinates(centros_global))
   
@@ -155,7 +169,7 @@ server <- function(input, output, session) {
       lon <- as.numeric(query$lon)
       
       if (!is.na(lat) && !is.na(lon)) {
-        # Mover cámara apenas se rendericen los datos
+        # Mover c\u00e1mara apenas se rendericen los datos
         shiny::observeEvent(datos_r(), {
           leafletProxy("mapa") %>%
             setView(lng = lon, lat = lat, zoom = 15)
@@ -164,12 +178,20 @@ server <- function(input, output, session) {
     }
   }, once = TRUE)
   
-  detect_goes_r <- reactivePoll(15000, session,
-    checkFunc = function() {
-      ruta <- "data_master/GOES16_Alertas.csv"
-      if (file.exists(ruta)) file.info(ruta)$mtime[1] else Sys.time()
-    },
-    valueFunc = function() {
+  # Polling cada 30 segundos usando reactiveTimer en nube o reactivo local
+  timer_goes <- reactiveTimer(30000)
+  
+  detect_goes_r <- reactive({
+    timer_goes()
+    if (.ON_CLOUD) {
+      url_goes <- "https://secasor.github.io/portal/data_master/GOES16_Alertas.csv"
+      tryCatch({
+        read.csv(url(url_goes), stringsAsFactors = FALSE) %>%
+          mutate(cod_unico = as.character(cod_unico)) %>%
+          select(cod_unico, GOES_Fuego, Estado_GOES) %>%
+          distinct(cod_unico, .keep_all = TRUE)
+      }, error = function(e) data.frame(cod_unico=character(), GOES_Fuego=logical(), Estado_GOES=character()))
+    } else {
       ruta <- "data_master/GOES16_Alertas.csv"
       if (file.exists(ruta)) {
         tryCatch({ 
@@ -182,9 +204,9 @@ server <- function(input, output, session) {
         data.frame(cod_unico=character(), GOES_Fuego=logical(), Estado_GOES=character())
       }
     }
-  )
+  })
 
-  # --- PROCESAMIENTO ESTRATÉGICO Y MATRIZ TEMPORAL ---
+  # --- PROCESAMIENTO ESTRAT\u00c9GICO Y MATRIZ TEMPORAL ---
   datos_r <- reactive({
     req(detect_goes_r())
     
@@ -195,7 +217,7 @@ server <- function(input, output, session) {
     df <- DATOS_OFICIALES %>%
       mutate(LAT = coords_tmp$Y, LON = coords_tmp$X)
     
-    # 2. Inyectar Alertas GOES Dinámicas
+    # 2. Inyectar Alertas GOES Din\u00e1micas
     df_goes_dyn <- detect_goes_r()
     if (nrow(df_goes_dyn) > 0) {
       df <- df %>%
@@ -214,10 +236,16 @@ server <- function(input, output, session) {
       df <- df %>% filter(MUNICIPIO == input$f_mun)
     }
     
-    # 4. Cálculo de Riesgo y Cruce con Visitas
+    # 4. C\u00e1lculo de Riesgo y Cruce con Visitas
     fecha_hoy <- Sys.Date()
     df <- df %>% 
-      left_join(datos_visitas(), by = "COD_HDA_KEY") %>%
+      left_join(datos_visitas(), by = "COD_HDA_KEY")
+      
+    if (!"HISTORIAL_VISITAS" %in% names(df)) df$HISTORIAL_VISITAS <- NA_character_
+    if (!"FECHA_VISITA" %in% names(df)) df$FECHA_VISITA <- as.Date(NA)
+    if (!"RADICADO" %in% names(df)) df$RADICADO <- "S/N"
+    
+    df <- df %>%
       mutate(
         DIAS_DESDE_ULT = as.numeric(fecha_hoy - FECHA_ULT_I),
         ESTADO_RADAR = case_when(
@@ -247,9 +275,9 @@ server <- function(input, output, session) {
         ),
         TXT_CICLO = sapply(CICLO_DIAS, function(dias) {
           if (is.na(dias) || dias == 0) return("Sin Historial")
-          if (dias < 60) return(paste(round(dias), "días"))
+          if (dias < 60) return(paste(round(dias), "d\u00edas"))
           meses <- floor(dias / 30.44); sobra <- round(dias %% 30.44)
-          txt_m <- ifelse(meses == 1, "1 mes", paste(meses, "meses")); txt_d <- ifelse(sobra > 0, paste(sobra, "días"), "")
+          txt_m <- ifelse(meses == 1, "1 mes", paste(meses, "meses")); txt_d <- ifelse(sobra > 0, paste(sobra, "d\u00edas"), "")
           return(trimws(paste(txt_m, txt_d)))
         }),
         TXT_ULTIMO = ifelse(!is.na(FECHA_ULT_I), as.character(FECHA_ULT_I), "Sin Incendios"),
@@ -273,7 +301,7 @@ server <- function(input, output, session) {
     return(df)
   })
   
-  # --- FILTRADO TÁCTICO (SOLO EMERGENCIAS REALES) ---
+  # --- FILTRADO T\u00c1CTICO (SOLO EMERGENCIAS REALES) ---
   datos_tacticos <- reactive({
     req(datos_r())
     # Filtramos por las dos fuentes satelitales configuradas en global.R
@@ -289,7 +317,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       df_base <- datos_r() %>% st_drop_geometry() %>%
-        # Sincronización Top 10
+        # Sincronizaci\u00f3n Top 10
         mutate(PESO = case_when(RIESGO == "CRITICO" ~ 1, RIESGO == "ALTO" ~ 2, RIESGO == "OBSERVACION" ~ 3, TRUE ~ 4))
       
       # 1. Alerta Inminente
@@ -297,7 +325,7 @@ server <- function(input, output, session) {
         filter(RIESGO %in% c("CRITICO", "ALTO")) %>%
         mutate(es_inminente = TRUE) %>% select(COD_HDA_KEY, es_inminente)
       
-      # 2. Focalización Operativa (Top 10 por Municipio)
+      # 2. Focalizaci\u00f3n Operativa (Top 10 por Municipio)
       df_foc_mun <- df_base %>%
         group_by(MUNICIPIO) %>% arrange(PESO, desc(DIFF_MESES)) %>% slice_head(n = 10) %>% ungroup() %>%
         mutate(es_foc_mun = TRUE) %>% select(COD_HDA_KEY, es_foc_mun)
@@ -319,7 +347,7 @@ server <- function(input, output, session) {
           es_foc_mun = ifelse(is.na(es_foc_mun), FALSE, es_foc_mun),
           es_top_reg = ifelse(is.na(es_top_reg), FALSE, es_top_reg),
           cat_1 = ifelse(es_inminente, "Alerta Inminente", NA),
-          cat_2 = ifelse(es_foc_mun, "Focalización Operativa", NA),
+          cat_2 = ifelse(es_foc_mun, "Focalizaci\u00f3n Operativa", NA),
           cat_3 = ifelse(es_top_reg, "Top 10 Regional", NA)
         ) %>%
         rowwise() %>%
@@ -334,27 +362,32 @@ server <- function(input, output, session) {
   
   output$mapa <- renderLeaflet({
     leaflet() %>%
-      addProviderTiles("Esri.WorldImagery", group = "Satélite (Esri)") %>%
-      addProviderTiles("CartoDB.PositronOnlyLabels", group = "Satélite (Esri)") %>%
-      addTiles(group = "Mapa Base (OSM)") %>%
+      addProviderTiles("CartoDB.DarkMatter", group = "Modo Noche (Stitch)") %>%
+      addProviderTiles("Esri.WorldImagery", group = "Satelital (Real)") %>%
+      addProviderTiles("CartoDB.PositronOnlyLabels", group = "Labels") %>%
       addTiles(
         urlTemplate = "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-        attribution = '\u00a9 Google Maps',
-        group = "Google Hybrid"
+        attribution = "© Google Maps",
+        group = "H\u00edbrido Google"
       ) %>%
       setView(-76.3, 3.5, 10)
   })
   
   # --- CARGAR TRAYECTORIAS HYSPLIT ---
   hysplit_r <- reactive({
-    if (file.exists("data_master/HYSPLIT_plumas.rds")) {
-      plumas <- tryCatch(readRDS("data_master/HYSPLIT_plumas.rds"), error = function(e) NULL)
+    if (.ON_CLOUD) {
+      plumas <- tryCatch(readRDS(url("https://secasor.github.io/portal/data_master/HYSPLIT_plumas.rds")), error = function(e) NULL)
       return(plumas)
+    } else {
+      if (file.exists("data_master/HYSPLIT_plumas.rds")) {
+        plumas <- tryCatch(readRDS("data_master/HYSPLIT_plumas.rds"), error = function(e) NULL)
+        return(plumas)
+      }
     }
     return(NULL)
   })
   
-  # --- ACTUALIZACIÓN DINÁMICA MAPA PREVENTIVO ---
+  # --- ACTUALIZACI\u00d3N DIN\u00c1MICA MAPA PREVENTIVO ---
   observe({
     req(datos_r())
     plumas <- hysplit_r()
@@ -364,10 +397,22 @@ server <- function(input, output, session) {
     df_ancla <- df_all %>% filter(coalesce(ES_ANCLA, FALSE))
     
     proxy <- leafletProxy("mapa") %>% 
-      clearShapes() %>%
-      clearGroup("Ancla Operativa (GPS)")
+      clearGroup("Haciendas de Riesgo") %>%
+      clearGroup("Simulaci\u00f3n Humo (HYSPLIT)") %>%
+      clearGroup("Flagrancia Satelital (FIRMS/GOES)") %>%
+      clearGroup("Ancla Operativa (GPS)") %>%
+      clearGroup("Zonas Restringidas")
+
+    # Capas de Restricci\u00f3n Ambiental (CVC)
+    if (!is.null(SHP_REST_RAMSAR))   proxy %>% addPolygons(data = SHP_REST_RAMSAR,   color = "#00bcd4", weight = 1, fillOpacity = 0.15, group = "Zonas Restringidas", options = pathOptions(interactive = FALSE))
+    if (!is.null(SHP_REST_AP))       proxy %>% addPolygons(data = SHP_REST_AP,       color = "#f39c12", weight = 1, fillOpacity = 0.15, group = "Zonas Restringidas", options = pathOptions(interactive = FALSE))
+    if (!is.null(SHP_REST_FORESTAL)) proxy %>% addPolygons(data = SHP_REST_FORESTAL, color = "#2ecc71", weight = 1, fillOpacity = 0.2, group = "Zonas Restringidas", options = pathOptions(interactive = FALSE))
+    if (!is.null(SHP_REST_RECARGA))  proxy %>% addPolygons(data = SHP_REST_RECARGA,  color = "#3498db", weight = 1, fillOpacity = 0.15, group = "Zonas Restringidas", options = pathOptions(interactive = FALSE))
+    if (!is.null(SHP_REST_CAUCA))    proxy %>% addPolygons(data = SHP_REST_CAUCA,    color = "#2980b9", weight = 1, fillOpacity = 0.2, group = "Zonas Restringidas", options = pathOptions(interactive = FALSE))
+    if (!is.null(SHP_REST_POBLADOS)) proxy %>% addPolygons(data = SHP_REST_POBLADOS, color = "#e67e22", weight = 1, fillOpacity = 0.2, group = "Zonas Restringidas", options = pathOptions(interactive = FALSE))
+    if (!is.null(SHP_REST_POZOS))    proxy %>% addPolygons(data = SHP_REST_POZOS,    color = "#9b59b6", weight = 1, fillOpacity = 0.2, group = "Zonas Restringidas", options = pathOptions(interactive = FALSE))
     
-    # Polígonos (haciendas con geometría SIG completa)
+    # Pol\u00edgonos (haciendas con geometr\u00eda SIG completa)
     if (nrow(df_poly) > 0) {
       proxy %>%
         addPolygons(
@@ -381,15 +426,19 @@ server <- function(input, output, session) {
             "<div style='padding:8px;'>",
             "<b>Ingenio:</b> ", INGENIO_FULL, "<br>",
             "<b>Municipio:</b> ", MUNICIPIO, "<br>",
+            "<b>Corregimiento:</b> ", CORREGIMIENTO, "<br>",
             "<b>Historial:</b> ", N_EVENTOS, " eventos registrados<br>",
-            "<b>Último Incendio:</b> ", TXT_ULTIMO, "<br>",
-            "<b>Ciclo Estimado:</b> ", TXT_ESTIMADO, " <i>(", TXT_CICLO, ")</i><br>",
+            "<b>\u00daLTIMO INCENDIO:</b> ", TXT_ULTIMO, "<br>",
+            "<b>CICLO ESTIMADO:</b> ", TXT_ESTIMADO, " <i>(", TXT_CICLO, ")</i><br>",
             "<b>Nivel Riesgo:</b> <b style='color:", COL, ";'>", RIESGO, "</b><br>",
             "<hr style='margin:5px 0;'>",
-            "<b>🌿 Estatus Biomasa (Sentinel-2):</b> ", ESTADO_BIOMASA, "<br>",
+            "<b>\ud83c\udf3f Estatus Biomasa (Sentinel-2):</b> ", ESTADO_BIOMASA, "<br>",
             "<hr style='margin:5px 0;'>",
-            "<b>Gestión CVC:</b> ", ESTADO_CONTROL,
-            ifelse(!is.na(FECHA_VISITA), paste0("<br><b>Fecha Visita:</b> ", FECHA_VISITA, " <i>(Radicado: ", RADICADO, ")</i>"), ""),
+            "<b>Gesti\u00f3n CVC:</b> ", ESTADO_CONTROL,
+            ifelse(!is.na(FECHA_VISITA), paste0("<br><b>\u00daLTIMA VISITA:</b> ", FECHA_VISITA, " <i>(Radicado: ", RADICADO, ")</i>"), ""),
+            ifelse(is.na(HISTORIAL_VISITAS) | HISTORIAL_VISITAS == as.character(FECHA_VISITA) | HISTORIAL_VISITAS=="", "", paste0("<br><b>\ud83e\uddfe Trazabilidad Visitas:</b> ", HISTORIAL_VISITAS)),
+            "<hr style='margin:5px 0;'>",
+            "<b>\ud83d\udee1\ufe0f Restricciones Ambientales:</b> ", RESTRICCIONES_CVC,
             "</div></div>"
           ),
           highlightOptions = highlightOptions(weight = 4, color = "black", bringToFront = TRUE)
@@ -410,23 +459,28 @@ server <- function(input, output, session) {
           popup = ~paste0(
             "<div style='font-family:sans-serif; font-size:13px; min-width:230px;'>",
             "<div style='background-color:#ecf0f1; padding:6px; border-bottom:2px solid ", COL, ";'>",
-            "📍 <b>", HDA_LABEL, "</b> <span style='font-size:10px;'>[Cod: ", COD_HDA_KEY, "]</span>",
-            "<br><span style='font-size:10px; color:#e74c3c;'>Punto GPS (Sin Polígono Catastral)</span></div>",
+            "\ud83d\udccd <b>", HDA_LABEL, "</b> <span style='font-size:10px;'>[Cod: ", COD_HDA_KEY, "]</span>",
+            "<br><span style='font-size:10px; color:#e74c3c;'>Punto GPS (Sin Pol\u00edgono Catastral)</span></div>",
             "<div style='padding:8px;'>",
             "<b>Ingenio:</b> ", INGENIO_FULL, "<br>",
             "<b>Municipio:</b> ", MUNICIPIO, "<br>",
+            "<b>Corregimiento:</b> ", CORREGIMIENTO, "<br>",
             "<b>Historial:</b> ", N_EVENTOS, " eventos registrados<br>",
-            "<b>Último Incendio:</b> ", TXT_ULTIMO, "<br>",
-            "<b>Ciclo Estimado:</b> ", TXT_ESTIMADO, " <i>(", TXT_CICLO, ")</i><br>",
+            "<b>\u00daLTIMO INCENDIO:</b> ", TXT_ULTIMO, "<br>",
+            "<b>CICLO ESTIMADO:</b> ", TXT_ESTIMADO, " <i>(", TXT_CICLO, ")</i><br>",
             "<b>Nivel Riesgo:</b> <b style='color:", COL, ";'>", RIESGO, "</b><br>",
             "<hr style='margin:5px 0;'>",
-            "<b>Gestión CVC:</b> ", ESTADO_CONTROL,
+            "<b>Gesti\u00f3n CVC:</b> ", ESTADO_CONTROL,
+            ifelse(!is.na(FECHA_VISITA), paste0("<br><b>\u00daLTIMA VISITA:</b> ", FECHA_VISITA, " <i>(Radicado: ", RADICADO, ")</i>"), ""),
+            ifelse(is.na(HISTORIAL_VISITAS) | HISTORIAL_VISITAS == as.character(FECHA_VISITA) | HISTORIAL_VISITAS=="", "", paste0("<br><b>\ud83e\uddfe Trazabilidad Visitas:</b> ", HISTORIAL_VISITAS)),
+            "<hr style='margin:5px 0;'>",
+            "<b>\ud83d\udee1\ufe0f Restricciones Ambientales:</b> ", RESTRICCIONES_CVC,
             "</div></div>"
           )
         )
     }
       
-    # Añadir plumas HYSPLIT si existen (Como grupo controlable)
+    # A\u00f1adir plumas HYSPLIT si existen (Como grupo controlable)
     if (!is.null(plumas) && inherits(plumas, "sf") && nrow(plumas) > 0) {
       proxy %>%
         addPolylines(
@@ -435,9 +489,9 @@ server <- function(input, output, session) {
           weight = 3,
           dashArray = "5, 5", 
           opacity = 0.8,
-          group = "Simulación Humo (HYSPLIT)",
+          group = "Simulaci\u00f3n Humo (HYSPLIT)",
           layerId = ~paste0("hysplit_", cod_hda_key, "_", height),
-          popup = ~paste0("<b>🧭 Simulación Preventiva de Humo (Predominancia de Vientos)</b><br>Proyección de alcance a 6 horas<br>Hacienda Origen: ", hda_nombre)
+          popup = ~paste0("<b>\ud83e\udded Simulaci\u00f3n Preventiva de Humo (Predominancia de Vientos)</b><br>Proyecci\u00f3n de alcance a 6 horas<br>Hacienda Origen: ", hda_nombre)
         )
     }
     
@@ -451,7 +505,7 @@ server <- function(input, output, session) {
           group = "Flagrancia Satelital (FIRMS/GOES)",
           popup = ~paste0(
             "<div style='font-family:sans-serif; padding:8px;'>",
-            "<h4 style='color:#e74c3c; margin:0;'>🚨 ALERTA DE INCENDIO</h4>",
+            "<h4 style='color:#e74c3c; margin:0;'>\ud83d\udea8 ALERTA DE INCENDIO</h4>",
             "<hr>",
             "<b>Hacienda:</b> ", HDA_LABEL, "<br>",
             "<b>Ingenio:</b> ", INGENIO_FULL, "<br>",
@@ -468,14 +522,15 @@ server <- function(input, output, session) {
         )
     }
 
-    # Agregar Control de Capas para evitar saturación
+    # Agregar Control de Capas para evitar saturaci\u00f3n
     proxy %>%
       addLayersControl(
-        baseGroups = c("Satélite (Esri)", "Google Hybrid", "Mapa Base (OSM)"),
-        overlayGroups = c("Haciendas de Riesgo", "Ancla Operativa (GPS)", "Simulación Humo (HYSPLIT)", "Flagrancia Satelital (FIRMS/GOES)"),
+        baseGroups = c("Sat\u00e9lite (Esri)", "Google Hybrid", "Mapa Base (OSM)"),
+        overlayGroups = c("Haciendas de Riesgo", "Ancla Operativa (GPS)", "Simulaci\u00f3n Humo (HYSPLIT)", "Flagrancia Satelital (FIRMS/GOES)", "Zonas Restringidas"),
         options = layersControlOptions(collapsed = TRUE)
       ) %>%
-      hideGroup("Flagrancia Satelital (FIRMS/GOES)")
+      hideGroup("Flagrancia Satelital (FIRMS/GOES)") %>%
+      hideGroup("Zonas Restringidas")
   })
   
   observeEvent(input$tabla_top_rows_selected, {
@@ -502,16 +557,19 @@ server <- function(input, output, session) {
         "<b>Ingenio:</b> ", selected_hda$INGENIO_FULL, "<br>",
         "<b>Municipio:</b> ", selected_hda$MUNICIPIO, "<br>",
         "<b>Historial:</b> ", selected_hda$N_EVENTOS, " eventos registrados<br>",
-        "<b>Último Incendio:</b> ", selected_hda$TXT_ULTIMO, "<br>",
-        "<b>Ciclo Estimado:</b> ", selected_hda$TXT_ESTIMADO, " <i>(", selected_hda$TXT_CICLO, ")</i><br>",
+        "<b>\u00daLTIMO INCENDIO:</b> ", selected_hda$TXT_ULTIMO, "<br>",
+        "<b>CICLO ESTIMADO:</b> ", selected_hda$TXT_ESTIMADO, " <i>(", selected_hda$TXT_CICLO, ")</i><br>",
         "<b>Nivel Riesgo:</b> <b style='color:", selected_hda$COL, ";'>", selected_hda$RIESGO, "</b><br>",
         "<hr style='margin:5px 0;'>",
-        "<b>🛰️ NASA FIRMS:</b> ", ifelse(selected_hda$SAT_FUEGO, "<b style='color:#c0392b;'>🚀 FUEGO DETECTADO (24H)</b>", "Cielo Limpio"), "<br>",
-        "<b>📡 GOES-16:</b> ", ifelse(selected_hda$GOES_FUEGO, paste0("<b style='color:#e74c3c;'>", selected_hda$ESTADO_GOES, "</b>"), "Sin Fuego Dinámico"), "<br>",
-        "<b>🌿 Sentinel-2:</b> ", selected_hda$ESTADO_BIOMASA, "<br>",
+        "<b>\ud83d\udef0\ufe0f NASA FIRMS:</b> ", ifelse(selected_hda$SAT_FUEGO, "<b style='color:#c0392b;'>\ud83d\ude80 FUEGO DETECTADO (24H)</b>", "Cielo Limpio"), "<br>",
+        "<b>\ud83d\udce1 GOES-16:</b> ", ifelse(selected_hda$GOES_FUEGO, paste0("<b style='color:#e74c3c;'>", selected_hda$ESTADO_GOES, "</b>"), "Sin Fuego Din\u00e1mico"), "<br>",
+        "<b>\ud83c\udf3f Sentinel-2:</b> ", selected_hda$ESTADO_BIOMASA, "<br>",
         "<hr style='margin:5px 0;'>",
-        "<b>Gestión CVC:</b> ", selected_hda$ESTADO_CONTROL,
-        ifelse(!is.na(selected_hda$FECHA_VISITA), paste0("<br><b>Fecha Visita:</b> ", selected_hda$FECHA_VISITA, " <i>(Radicado: ", selected_hda$RADICADO, ")</i>"), ""),
+        "<b>Gesti\u00f3n CVC:</b> ", selected_hda$ESTADO_CONTROL,
+        ifelse(!is.na(selected_hda$FECHA_VISITA), paste0("<br><b>\u00daLTIMA VISITA:</b> ", selected_hda$FECHA_VISITA, " <i>(Radicado: ", selected_hda$RADICADO, ")</i>"), ""),
+        ifelse(is.na(selected_hda$HISTORIAL_VISITAS) | selected_hda$HISTORIAL_VISITAS == as.character(selected_hda$FECHA_VISITA) | selected_hda$HISTORIAL_VISITAS=="", "", paste0("<br><b>\ud83e\uddfe Trazabilidad Visitas:</b> ", selected_hda$HISTORIAL_VISITAS)),
+        "<hr style='margin:5px 0;'>",
+        "<b>\ud83d\udee1\ufe0f Restricciones Ambientales:</b> ", selected_hda$RESTRICCIONES_CVC,
         "</div></div>"
       )
       
@@ -565,12 +623,12 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       
-      # ── Datos: solo CRITICO y ALTO ─────────────────────────────────────────
+      # \u2500\u2500 Datos: solo CRITICO y ALTO \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
       poligonos_gis <- datos_r() %>%
         filter(RIESGO %in% c("CRITICO", "ALTO")) %>%
         filter(!coalesce(ES_ANCLA, FALSE)) %>%
         mutate(
-          RIESGO_GIS = as.character(RIESGO),    # Campo explícito sin ambigüedad
+          RIESGO_GIS = as.character(RIESGO),    # Campo expl\u00edcito sin ambig\u00fcedad
           NOM_PRED   = substr(HDA_LABEL, 1, 100),
           INGENIO    = INGENIO_FULL,
           MUN        = MUNICIPIO,
@@ -579,15 +637,15 @@ server <- function(input, output, session) {
         ) %>%
         select(NOM_PRED, INGENIO, MUN, RIESGO_GIS, TIPO, FECHA_EST)
       
-      # ── Paso 1: sf escribe el KML base (sin colores) ────────────────────────
+      # \u2500\u2500 Paso 1: sf escribe el KML base (sin colores) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
       kml_tmp <- tempfile(fileext = ".kml")
       sf::st_write(poligonos_gis, dsn = kml_tmp, driver = "KML",
                    delete_dsn = TRUE, quiet = TRUE)
       
-      # ── Paso 2: Inyectar estilos de color en el KML ─────────────────────────
+      # \u2500\u2500 Paso 2: Inyectar estilos de color en el KML \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
       # KML usa color en formato AABBGGRR (alpha-blue-green-red, invertido al RGB)
-      # CRITICO #c0392b → alpha=d9, B=2b, G=39, R=c0 → "d92b39c0"
-      # ALTO    #e67e22 → alpha=d9, B=22, G=7e, R=e6 → "d9227ee6"
+      # CRITICO #c0392b \u2192 alpha=d9, B=2b, G=39, R=c0 \u2192 "d92b39c0"
+      # ALTO    #e67e22 \u2192 alpha=d9, B=22, G=7e, R=e6 \u2192 "d9227ee6"
       kml_lines <- readLines(kml_tmp, warn = FALSE, encoding = "UTF-8")
       
       style_block <- c(
@@ -615,7 +673,7 @@ server <- function(input, output, session) {
           next
         }
         
-        # Inicio de Placemark → resetear el riesgo capturado
+        # Inicio de Placemark \u2192 resetear el riesgo capturado
         if (grepl("<Placemark>", ln, fixed = TRUE)) cur_riesgo <- NA_character_
         
         # Detectar el valor de RIESGO_GIS en el SimpleData de este Placemark
@@ -624,8 +682,8 @@ server <- function(input, output, session) {
           if (length(m) > 0) cur_riesgo <- trimws(m[1])
         }
         
-        # Insertar <styleUrl> ANTES del primer elemento geométrico del Placemark
-        # (ExtendedData viene antes de la geometría en el output de GDAL/KML)
+        # Insertar <styleUrl> ANTES del primer elemento geom\u00e9trico del Placemark
+        # (ExtendedData viene antes de la geometr\u00eda en el output de GDAL/KML)
         if (!is.na(cur_riesgo) && grepl("<Polygon>|<MultiGeometry>", ln)) {
           sid       <- if (cur_riesgo == "CRITICO") "CRITICO" else "ALTO"
           new_lines <- c(new_lines, paste0("    <styleUrl>#", sid, "</styleUrl>"))
@@ -642,37 +700,51 @@ server <- function(input, output, session) {
 
 
   # --- CAJAS DE RIESGO ---
-
-
   output$box_red <- renderValueBox({ 
-    valueBox(sum(datos_r()$RIESGO=="CRITICO"), 
-             HTML("<b>CRÍTICO (±1 Mes)</b><br><span style='font-size:12px;'>Alto Riesgo</span>"), icon=icon("fire"), color="danger") 
+    valueBox(
+      value = tags$p(sum(datos_r()$RIESGO=="CRITICO"), style="font-size:3rem; margin-bottom:0; line-height:1;"), 
+      subtitle = HTML("<b>CRÍTICO (±1 Mes)</b><br><span style='font-size:12px;'>Alto Riesgo</span>"),
+      icon = icon("fire-alt"), 
+      color = "danger"
+    ) 
   })
   output$box_orange <- renderValueBox({ 
-    valueBox(sum(datos_r()$RIESGO=="ALTO"), 
-             HTML("<b>ALTO (±2 Meses)</b><br><span style='font-size:12px;'>Riesgo Latente</span>"), icon=icon("warning"), color="orange") 
+    valueBox(
+      value = tags$p(sum(datos_r()$RIESGO=="ALTO"), style="font-size:3rem; margin-bottom:0; line-height:1;"), 
+      subtitle = HTML("<b>ALTO (±2 Meses)</b><br><span style='font-size:12px;'>Riesgo Preventivo</span>"),
+      icon = icon("exclamation-triangle"), 
+      color = "orange"
+    ) 
   })
   output$box_yellow <- renderValueBox({ 
-    valueBox(sum(datos_r()$RIESGO=="OBSERVACION"), 
-             HTML("<b>OBSERVACIÓN (±3 Meses)</b><br><span style='font-size:12px;'>Alerta Temprana</span>"), icon=icon("eye"), color="warning") 
+    valueBox(
+      value = tags$p(sum(datos_r()$RIESGO=="OBSERVACION"), style="font-size:3rem; margin-bottom:0; line-height:1;"), 
+      subtitle = HTML("<b>OBSERVACIÓN (±3 Meses)</b><br><span style='font-size:12px;'>Riesgo Medio</span>"),
+      icon = icon("eye"), 
+      color = "warning"
+    ) 
   })
   output$box_green <- renderValueBox({ 
-    valueBox(sum(datos_r()$RIESGO %in% c("BAJO", "MITIGADO")), 
-             HTML("<b>BAJO / MITIGADO (> ±3 Meses)</b><br><span style='font-size:12px;'>Riesgo Bajo</span>"), icon=icon("check"), color="success") 
+    valueBox(
+      value = tags$p(sum(datos_r()$RIESGO %in% c("BAJO", "MITIGADO")), style="font-size:3rem; margin-bottom:0; line-height:1;"), 
+      subtitle = HTML("<b>BAJO (> 3 Meses)</b><br><span style='font-size:12px;'>Riesgo Controlado</span>"),
+      icon = icon("check-circle"), 
+      color = "success"
+    ) 
   })
   
   # --- CAJAS OPERATIVAS (VISITAS) ---
   output$box_visitas_control <- renderValueBox({
     total_visitadas <- sum(datos_r()$ESTADO_CONTROL == "🛡️ Visitado", na.rm = TRUE)
-    valueBox(total_visitadas, "Haciendas Visitadas en Riesgo Alto/Crítico", icon = icon("shield-alt"), color = "purple")
+    valueBox(total_visitadas, "Haciendas Visitadas en Riesgo Alto/Cr\u00edtico", icon = icon("shield-alt"), color = "purple")
   })
   
   output$box_visitas_exito <- renderValueBox({
-    total_exitos <- sum(datos_r()$ESTADO_CONTROL == "✅ Incendio Evitado (Éxito)", na.rm = TRUE)
+    total_exitos <- sum(datos_r()$ESTADO_CONTROL == "✅ Incendio Evitado (\u00c9xito)", na.rm = TRUE)
     valueBox(total_exitos, "Incendios Evitados (Ciclo Superado con Visita)", icon = icon("award"), color = "olive")
   })
 
-  # --- CAJAS TÁCTICAS (VIGILANCIA) ---
+  # --- CAJAS T\u00c1CTICAS (VIGILANCIA) ---
   output$box_firms_24h <- renderValueBox({
     total <- sum(datos_r()$SAT_FUEGO == TRUE, na.rm = TRUE)
     valueBox(total, "Fuegos Detectados (NASA FIRMS 24h)", icon = icon("fire"), color = "danger")
@@ -680,7 +752,7 @@ server <- function(input, output, session) {
 
   output$box_goes_alert <- renderValueBox({
     total <- sum(datos_r()$GOES_FUEGO == TRUE, na.rm = TRUE)
-    valueBox(total, "Alertas Dinámicas (GOES-16 1h)", icon = icon("satellite-dish"), color = "warning")
+    valueBox(total, "Alertas Din\u00e1micas (GOES-16 1h)", icon = icon("satellite-dish"), color = "warning")
   })
   
   output$grafo_riesgo <- visNetwork::renderVisNetwork({
@@ -718,9 +790,9 @@ server <- function(input, output, session) {
       visNetwork::visPhysics(stabilization = FALSE)
   })
   
-  # [BLINDAJE 1 Y 2 APLICADOS AL HISTORIAL DINÁMICO]
+  # [BLINDAJE 1 Y 2 APLICADOS AL HISTORIAL DIN\u00c1MICO]
   # Extirpada la Bomba de Rendimiento: Ya no se lee 'reportes_cosecha/*.xlsx' en caliente
-  # La base histórica bebe del SATICA_HISTORIAL precalculado recuperando la cardinalidad temporal total.
+  # La base hist\u00f3rica bebe del SATICA_HISTORIAL precalculado recuperando la cardinalidad temporal total.
   base_historica_real <- reactive({
     
     # 1. Cargamos el mini-RDS (Milisegundos) que guarda cada incendio individual
@@ -732,7 +804,7 @@ server <- function(input, output, session) {
       select(COD_HDA_KEY, HDA_LABEL, INGENIO_FULL, MUNICIPIO) %>%
       distinct(COD_HDA_KEY, .keep_all = TRUE)
     
-    # 3. Cruzamos y formateamos para inyección rápida en las gráficas
+    # 3. Cruzamos y formateamos para inyecci\u00f3n r\u00e1pida en las gr\u00e1ficas
     df_final <- historial_crudo %>%
       mutate(
         ING = substr(COD_UNICO_14, 1, 2),
@@ -781,14 +853,14 @@ server <- function(input, output, session) {
         "<b>Total registros de incendio</b><br>",
         "<span style='font-size:12px;'>",
         formatC(n_predios, format="d", big.mark="."),
-        " haciendas únicas afectadas</span>"
+        " haciendas \u00fanicas afectadas</span>"
       )),
       icon  = icon("fire"),
-      color = "navy"  # 'navy' es válido en bs4Dash
+      color = "navy"  # 'navy' es v\u00e1lido en bs4Dash
     )
   })
 
-  # --- TABLA SIN GEORREFERENCIACIÓN ---
+  # --- TABLA SIN GEORREFERENCIACI\u00d3N ---
   output$tabla_sin_georref <- renderDT(server = FALSE, {
     req(SIN_GEORREF)
     n_total <- nrow(SIN_GEORREF)
@@ -800,7 +872,7 @@ server <- function(input, output, session) {
         caption    = htmltools::tags$caption(
           style = "caption-side: top; text-align: left; font-size: 14px; font-weight: bold; color:#c0392b; padding: 6px 0;",
           paste0("\u26a0 Total haciendas sin georreferenciaci\u00f3n: ", n_total,
-                 " — Los botones exportan la totalidad del registro, no solo la p\u00e1gina visible.")
+                 " \u2014 Los botones exportan la totalidad del registro, no solo la p\u00e1gina visible.")
         ),
         extensions = 'Buttons',
         filter     = 'top',
@@ -821,7 +893,7 @@ server <- function(input, output, session) {
               extend  = 'excel',
               text    = '\U0001F4CA Descargar Excel',
               filename = paste0('SinGeorref_SATICA_', Sys.Date()),
-              title   = paste0('SATICA — Sin Georreferenciaci\u00f3n — ', Sys.Date()),
+              title   = paste0('SATICA \u2014 Sin Georreferenciaci\u00f3n \u2014 ', Sys.Date()),
               exportOptions = list(
                 modifier = list(page = 'all')
               )
@@ -829,7 +901,7 @@ server <- function(input, output, session) {
             list(
               extend  = 'print',
               text    = '\U0001F5A8 Imprimir Todo',
-              title   = paste0('SATICA — Sin Georreferenciaci\u00f3n — ', Sys.Date()),
+              title   = paste0('SATICA \u2014 Sin Georreferenciaci\u00f3n \u2014 ', Sys.Date()),
               exportOptions = list(
                 modifier = list(page = 'all')
               )
@@ -841,14 +913,58 @@ server <- function(input, output, session) {
 
   # --- DESCARGA EXCEL SEGUIMIENTO ---
   output$descargar_excel <- downloadHandler(
-    filename = function() { paste0("Seguimiento_SATICA_", Sys.Date(), ".xlsx") },
+    filename = function() { paste0("Seguimiento_Boletin_SATICA_", Sys.Date(), ".xlsx") },
     content  = function(file) {
-      df_export <- datos_r() %>% st_drop_geometry() %>%
-        select(COD_HDA_KEY, HDA_LABEL, INGENIO_FULL, MUNICIPIO, CORREGIMIENTO,
-               RIESGO, N_EVENTOS, FECHA_ULT_I, TXT_ESTIMADO, TXT_CICLO,
-               ESTADO_CONTROL, DIFF_MESES) %>%
-        mutate(FECHA_ULT_I = as.character(FECHA_ULT_I))
-      openxlsx::write.xlsx(df_export, file)
+      df_base <- datos_r() %>% st_drop_geometry() %>%
+        mutate(
+          MUN_VAL = MUNICIPIO,
+          HDA_NOM = HDA_LABEL,
+          CORREG_VAL = CORREGIMIENTO,
+          INGENIO_VAL = INGENIO_FULL,
+          TOTAL_HISTORICO = ifelse(is.na(N_EVENTOS), 0, as.numeric(N_EVENTOS)),
+          TXT_ULTIMO_INCENDIO = ifelse(!is.na(FECHA_ULT_I), as.character(FECHA_ULT_I), "Sin Eventos"),
+          TXT_AUDITORIA = case_when(
+            ESTADO_CONTROL == "Visitado" & !is.na(RADICADO) & RADICADO != "S/N" ~ paste("Visitado (Rad:", RADICADO, ")"),
+            TRUE ~ ESTADO_CONTROL
+          ),
+          PESO_RIESGO = case_when(RIESGO == "CRITICO" ~ 1, RIESGO == "ALTO" ~ 2, RIESGO == "OBSERVACION" ~ 3, TRUE ~ 4)
+        )
+      
+      # Pestana 1: Cronograma Inminentes (+- 15 dias)
+      datos_alerta <- df_base %>% filter(RIESGO %in% c("CRITICO", "ALTO")) %>% arrange(PESO_RIESGO, desc(DIFF_MESES))
+      datos_quincena <- datos_alerta %>%
+        mutate(
+          FECH_EST = as.Date(FECHA_ULT_I) + CICLO_DIAS,
+          DIAS_FALTANTES = as.numeric(FECH_EST - Sys.Date()),
+          TXT_ESTIMADO = ifelse(!is.na(FECH_EST), as.character(FECH_EST), "N/A")
+        ) %>%
+        filter(DIAS_FALTANTES >= -15 & DIAS_FALTANTES <= 15) %>%
+        arrange(MUN_VAL) %>%
+        select(Municipio = MUN_VAL, Hacienda = HDA_NOM, Corregimiento = CORREG_VAL, Ingenio = INGENIO_VAL, `Ultimo Evento` = TXT_ULTIMO_INCENDIO, `Ciclo Estimado` = TXT_ESTIMADO, `Historico` = TOTAL_HISTORICO, `Gestion CVC` = TXT_AUDITORIA) %>%
+        mutate(`Funcionario Responsable` = "", Radicado = "")
+
+      # Pestana 2: Focalizacion Top 10 Municipio
+      top_municipios <- df_base %>%
+        group_by(MUN_VAL) %>%
+        slice_max(order_by = TOTAL_HISTORICO, n = 10, with_ties = FALSE) %>%
+        arrange(MUN_VAL, desc(TOTAL_HISTORICO)) %>%
+        ungroup() %>%
+        select(Municipio = MUN_VAL, Hacienda = HDA_NOM, Corregimiento = CORREG_VAL, Ingenio = INGENIO_VAL, Riesgo = RIESGO, `Ultimo Evento` = TXT_ULTIMO_INCENDIO, Historico = TOTAL_HISTORICO, `Gestion CVC` = TXT_AUDITORIA) %>%
+        mutate(`Funcionario Responsable` = "", Radicado = "")
+
+      # Pestana 3: Ficha Tecnica Regional
+      ficha_maestra <- df_base %>%
+        slice_max(order_by = TOTAL_HISTORICO, n = 10, with_ties = FALSE) %>%
+        arrange(desc(TOTAL_HISTORICO)) %>%
+        select(Municipio = MUN_VAL, Hacienda = HDA_NOM, Corregimiento = CORREG_VAL, Ingenio = INGENIO_VAL, Nivel = RIESGO, `Ultimo Evento` = TXT_ULTIMO_INCENDIO, `Historico` = TOTAL_HISTORICO, `Gestion CVC` = TXT_AUDITORIA) %>%
+        mutate(`Funcionario Responsable` = "", Radicado = "")
+
+      # Generar y escribir multiples hojas
+      openxlsx::write.xlsx(list(
+        "Cronograma Inminentes" = datos_quincena,
+        "Top 10 Municipio" = top_municipios,
+        "Ficha Tecnica DAR" = ficha_maestra
+      ), file)
     }
   )
   
