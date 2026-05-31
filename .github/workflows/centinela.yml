@@ -115,8 +115,6 @@ jobs:
           [ -f "sin_georref_coords.csv" ] && cp -f sin_georref_coords.csv www/ || echo "No manual coords"
           [ -f "visitas_cvc.csv" ] && cp -f visitas_cvc.csv www/ || echo "No visitas"
           
-          # Renombrar reporte principal para visor del portal
-          cp -f www/reporte.html www/index.html || echo "Generando index estático"
 
       - name: 🚀 Desplegar Portal Estático a GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
