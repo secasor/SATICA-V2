@@ -143,6 +143,20 @@ jobs:
           mkdir -p ../hf-deploy-dir/www
           [ -f "www/cvc_logo.png" ] && cp www/cvc_logo.png ../hf-deploy-dir/www/ || echo "No logo"
           
+          # Copiar bases de datos y cachés geoespaciales para acelerar el inicio
+          mkdir -p ../hf-deploy-dir/data_master
+          [ -f "data_master/SATICA_MASTER_v2.2.rds" ] && cp data_master/SATICA_MASTER_v2.2.rds ../hf-deploy-dir/data_master/
+          [ -f "data_master/SATICA_HISTORIAL_v2.2.rds" ] && cp data_master/SATICA_HISTORIAL_v2.2.rds ../hf-deploy-dir/data_master/
+          
+          mkdir -p ../hf-deploy-dir/data_estatica
+          [ -f "data_estatica/GEO_CACHE_SATICA.rds" ] && cp data_estatica/GEO_CACHE_SATICA.rds ../hf-deploy-dir/data_estatica/
+          [ -f "data_estatica/REST_CACHE_SATICA.RData" ] && cp data_estatica/REST_CACHE_SATICA.RData ../hf-deploy-dir/data_estatica/
+          
+          mkdir -p ../hf-deploy-dir/resultados_diagnostico
+          [ -f "resultados_diagnostico/punto_ciego_suroriente.csv" ] && cp resultados_diagnostico/punto_ciego_suroriente.csv ../hf-deploy-dir/resultados_diagnostico/
+          
+          [ -f "sin_georref_coords.csv" ] && cp sin_georref_coords.csv ../hf-deploy-dir/
+          
           # Ir al directorio temporal
           cd ../hf-deploy-dir
           
