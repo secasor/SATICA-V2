@@ -22,7 +22,7 @@ jobs:
       NASA_FIRMS_KEY:     ${{ secrets.NASA_FIRMS_KEY }}
       HF_TOKEN:           ${{ secrets.HF_TOKEN }}
       # URL del portal en GitHub Pages
-      SHINY_URL_BASE:     'https://secasor.github.io/portal/'
+      SHINY_URL_BASE:     'https://satica-cvc-satica.hf.space/'
 
     steps:
       - name: 📥 Clonar Repositorio
@@ -99,6 +99,7 @@ jobs:
           
           # Copiamos archivos con nombres genéricos fijos de descarga
           cp -f data_master/SATICA_MASTER_v2.2.rds www/data_master/
+          cp -f data_master/SATICA_HISTORIAL_v2.2.rds www/data_master/
           cp -f data_master/data_summary.json www/data_master/
           cp -f data_master/GOES16_Alertas.csv www/data_master/
           
@@ -136,6 +137,7 @@ jobs:
           cp instalar_dependencias.R ../hf-deploy-dir/
           cp aux_functions.R ../hf-deploy-dir/
           cp Dockerfile ../hf-deploy-dir/
+          cp README.md ../hf-deploy-dir/
           
           # Copiar únicamente el logo de la corporación para la interfaz
           mkdir -p ../hf-deploy-dir/www

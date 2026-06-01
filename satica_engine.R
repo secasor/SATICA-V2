@@ -101,7 +101,7 @@ if (length(archivos) > 0) {
 # Fallback robusto en la nube si no hay archivos locales Excel a procesar
 if (is.null(historial_incendios) || nrow(historial_incendios) == 0) {
   message("  🛰️  Sin nuevos archivos locales. Cargando historial consolidado de respaldo desde URL...")
-  url_historial <- "https://secasor.github.io/portal/data_master/SATICA_HISTORIAL_v2.2.rds"
+  url_historial <- "https://secasor.github.io/SATICA-V2/data_master/SATICA_HISTORIAL_v2.2.rds"
   historial_incendios <- tryCatch({
     readRDS(url(url_historial))
   }, error = function(e) {

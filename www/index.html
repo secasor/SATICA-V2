@@ -13,13 +13,14 @@
   
   <style>
     :root {
-      --bg-dark: #090d16;
-      --bg-glass: rgba(15, 23, 42, 0.65);
+      --bg-dark: #051118; /* Pizarra oscura azul-verde ultra premium */
+      --bg-glass: rgba(10, 25, 30, 0.7); /* Vidrio esmerilado profundo */
       --border-glass: rgba(255, 255, 255, 0.08);
-      --accent-blue: #38bdf8;
-      --accent-red: #f43f5e;
-      --accent-orange: #f59e0b;
-      --accent-green: #10b981;
+      --accent-blue: #1A5276; /* Azul Corporativo CVC */
+      --accent-blue-glow: #2980b9; /* Brillo azul para botones y focos */
+      --accent-green: #27AE60; /* Verde Ambiental CVC */
+      --accent-red: #CC0000; /* Rojo Alerta Inmediata */
+      --accent-orange: #FF8C00; /* Naranja Alerta Preventiva */
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -34,8 +35,8 @@
       font-family: 'Outfit', sans-serif;
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(244, 63, 94, 0.08) 0%, transparent 40%);
+        radial-gradient(circle at 10% 20%, rgba(39, 174, 96, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(26, 82, 118, 0.08) 0%, transparent 40%);
       color: var(--text-main);
       min-height: 100vh;
       line-height: 1.6;
@@ -48,12 +49,12 @@
       border-radius: 50%;
       filter: blur(80px);
       z-index: -1;
-      opacity: 0.5;
+      opacity: 0.4;
     }
     .blob-1 {
       width: 300px;
       height: 300px;
-      background: var(--accent-blue);
+      background: var(--accent-green);
       top: 15%;
       left: -100px;
       animation: float 20s infinite alternate;
@@ -61,7 +62,7 @@
     .blob-2 {
       width: 400px;
       height: 400px;
-      background: var(--accent-red);
+      background: var(--accent-blue-glow);
       bottom: 10%;
       right: -100px;
       animation: float 25s infinite alternate-reverse;
@@ -97,7 +98,7 @@
     }
 
     .brand-logo {
-      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-red) 100%);
+      background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-blue-glow) 100%);
       width: 50px;
       height: 50px;
       border-radius: 12px;
@@ -106,7 +107,7 @@
       justify-content: center;
       font-size: 24px;
       color: white;
-      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.3);
+      box-shadow: 0 10px 25px rgba(39, 174, 96, 0.25);
     }
 
     .brand-title h1 {
@@ -120,7 +121,7 @@
 
     .brand-title p {
       font-size: 13px;
-      color: var(--accent-blue);
+      color: var(--accent-green);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 2px;
@@ -280,12 +281,12 @@
     }
 
     .btn-primary-action {
-      background: linear-gradient(135deg, var(--accent-blue) 0%, #0369a1 100%) !important;
+      background: linear-gradient(135deg, var(--accent-green) 0%, #1e824c 100%) !important;
       border: none !important;
-      box-shadow: 0 10px 20px rgba(56, 189, 248, 0.25);
+      box-shadow: 0 10px 20px rgba(39, 174, 96, 0.25);
     }
     .btn-primary-action:hover {
-      box-shadow: 0 15px 30px rgba(56, 189, 248, 0.4);
+      box-shadow: 0 15px 30px rgba(39, 174, 96, 0.4);
       transform: scale(1.02) translateX(0) !important;
     }
 

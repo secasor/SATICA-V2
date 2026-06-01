@@ -1,5 +1,5 @@
 ---
-title: "SATICA — BOLETÍN DE ALERTAS TEMPRANAS N° 5"
+title: "`r paste0('SATICA — BOLETÍN DE ALERTAS TEMPRANAS N° ', (as.numeric(format(Sys.Date(), '%Y')) - 2026) * 12 + as.numeric(format(Sys.Date(), '%m')) + 1)`"
 params:
   datos: !r NA
 output: html_document
