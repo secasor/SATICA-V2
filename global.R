@@ -107,15 +107,24 @@ mapear_ingenio <- function(codigo) {
   )
 }
 
+# --- FUNCIONES DE CARGA HÍBRIDA PARA OPTIMIZACIÓN EN LA NUBE ---
+cargar_rds_hibrido <- function(local_path, url_path) {
+  if (file.exists(local_path)) {
+    message("⚡ Carga local rápida (Caché): ", local_path)
+    res <- tryCatch(readRDS(local_path), error = function(e) NULL)
+    if (!is.null(res)) return(res)
+  }
+  message("🌐 Descargando desde internet: ", url_path)
+  readRDS(url(url_path))
+}
+
 # --- 2. CARGA PRINCIPAL: GEOMETRÍA + DATOS MAESTROS ---
 tryCatch({
   
-  if (.ON_CLOUD) {
-    message("🌐 Cargando base de datos maestra consolidada desde Portal de GitHub Pages...")
-    master_rds <- readRDS(url("https://secasor.github.io/SATICA-V2/data_master/SATICA_MASTER_v2.2.rds"))
-  } else {
-    master_rds <- readRDS("data_master/SATICA_MASTER_v2.2.rds")
-  }
+  master_rds <- cargar_rds_hibrido(
+    "data_master/SATICA_MASTER_v2.2.rds",
+    "https://secasor.github.io/SATICA-V2/data_master/SATICA_MASTER_v2.2.rds"
+  )
   
   formatear_tiempo_g <- function(dias) {
     if (is.na(dias) || dias == 0) return("Sin Historial")
@@ -159,8 +168,12 @@ tryCatch({
   
   if (!dir.exists("data_estatica")) dir.create("data_estatica")
   
-  if (.ON_CLOUD) {
-    message("🌐 CLOUD CACHE: Cargando Base Geoespacial Estática desde Portal de GitHub Pages...")
+  if (file.exists(cache_geo_path) && file.exists(cache_rest_path)) {
+    message("⚡ CACHE LOCAL ENCONTRADO: Cargando Base Geoespacial Estática...")
+    DATOS_ESPACIALES_BASE <- readRDS(cache_geo_path)
+    load(cache_rest_path, envir = .GlobalEnv)
+  } else if (.ON_CLOUD) {
+    message("🌐 CLOUD CACHE: Descargando Base Geoespacial Estática desde Portal de GitHub Pages...")
     DATOS_ESPACIALES_BASE <- readRDS(url("https://secasor.github.io/SATICA-V2/data_estatica/GEO_CACHE_SATICA.rds"))
     
     # Cargar archivo .RData desde la URL descargándolo a un archivo temporal
@@ -173,10 +186,6 @@ tryCatch({
     }, finally = {
       if (file.exists(temp_rest)) unlink(temp_rest)
     })
-  } else if (file.exists(cache_geo_path) && file.exists(cache_rest_path)) {
-    message("⚡ CACHE: Cargando Base Geoespacial Estática...")
-    DATOS_ESPACIALES_BASE <- readRDS(cache_geo_path)
-    load(cache_rest_path, envir = .GlobalEnv)
   } else {
     message("⏳ CACHE NO ENCONTRADO: Generando Base Geoespacial (Esto tomará 1-2 minutos)...")
     
@@ -332,7 +341,17 @@ tryCatch({
   RUTA_PUNTO_CIEGO <- "resultados_diagnostico/punto_ciego_suroriente.csv"
   RUTA_COORDS      <- "sin_georref_coords.csv"
   
-  if (.ON_CLOUD) {
+  # Carga híbrida inteligente para Punto Ciego
+  if (file.exists(RUTA_PUNTO_CIEGO)) {
+    message("⚡ Carga local rápida: ", RUTA_PUNTO_CIEGO)
+    sin_georref_base <- read.csv(RUTA_PUNTO_CIEGO, stringsAsFactors = FALSE, encoding = "UTF-8") %>%
+      mutate(
+        COD_HDA_8       = toupper(trimws(COD_HDA_8)),
+        Municipio_Excel = toupper(trimws(coalesce(Municipio_Excel, "SIN DATO"))),
+        Correg_Excel    = toupper(trimws(coalesce(Correg_Excel,    "SIN DATO")))
+      )
+  } else if (.ON_CLOUD) {
+    message("🌐 Descargando Punto Ciego desde GitHub Pages...")
     sin_georref_base <- tryCatch({
       read.csv(url("https://secasor.github.io/SATICA-V2/resultados_diagnostico/punto_ciego_suroriente.csv"),
                stringsAsFactors = FALSE, encoding = "UTF-8") %>%
@@ -350,7 +369,23 @@ tryCatch({
         stringsAsFactors = FALSE
       )
     })
-    
+  } else {
+    sin_georref_base <- data.frame(
+      COD_HDA_8 = character(), Nombre_Reporte = character(),
+      Ingenio = character(), Municipio_Excel = character(),
+      Correg_Excel = character(), n_registros = integer(),
+      n_suertes = integer(), Prioridad = character(),
+      stringsAsFactors = FALSE
+    )
+  }
+  
+  # Carga híbrida inteligente para Coordenadas Manuales
+  if (file.exists(RUTA_COORDS)) {
+    message("⚡ Carga local rápida: ", RUTA_COORDS)
+    coords_manual <- read.csv(RUTA_COORDS, stringsAsFactors = FALSE, encoding = "UTF-8") %>%
+      mutate(COD_HDA_8 = toupper(trimws(COD_HDA_8)))
+  } else if (.ON_CLOUD) {
+    message("🌐 Descargando Coordenadas Manuales desde GitHub Pages...")
     coords_manual <- tryCatch({
       read.csv(url("https://secasor.github.io/SATICA-V2/sin_georref_coords.csv"),
                stringsAsFactors = FALSE, encoding = "UTF-8") %>%
@@ -366,39 +401,15 @@ tryCatch({
       )
     })
   } else {
-    if (file.exists(RUTA_PUNTO_CIEGO)) {
-      sin_georref_base <- read.csv(RUTA_PUNTO_CIEGO,
-                                   stringsAsFactors = FALSE, encoding = "UTF-8") %>%
-        mutate(
-          COD_HDA_8       = toupper(trimws(COD_HDA_8)),
-          Municipio_Excel = toupper(trimws(coalesce(Municipio_Excel, "SIN DATO"))),
-          Correg_Excel    = toupper(trimws(coalesce(Correg_Excel,    "SIN DATO")))
-        )
-    } else {
-      sin_georref_base <- data.frame(
-        COD_HDA_8 = character(), Nombre_Reporte = character(),
-        Ingenio = character(), Municipio_Excel = character(),
-        Correg_Excel = character(), n_registros = integer(),
-        n_suertes = integer(), Prioridad = character(),
-        stringsAsFactors = FALSE
-      )
-    }
-    
-    if (file.exists(RUTA_COORDS)) {
-      coords_manual <- read.csv(RUTA_COORDS,
-                                stringsAsFactors = FALSE, encoding = "UTF-8") %>%
-        mutate(COD_HDA_8 = toupper(trimws(COD_HDA_8)))
-    } else {
-      coords_manual <- data.frame(
-        COD_HDA_8     = sin_georref_base$COD_HDA_8,
-        LAT           = NA_real_,
-        LON           = NA_real_,
-        Notas         = NA_character_,
-        Fecha_Georref = NA_character_,
-        stringsAsFactors = FALSE
-      )
-      write.csv(coords_manual, RUTA_COORDS, row.names = FALSE, fileEncoding = "UTF-8")
-    }
+    coords_manual <- data.frame(
+      COD_HDA_8     = sin_georref_base$COD_HDA_8,
+      LAT           = NA_real_,
+      LON           = NA_real_,
+      Notas         = NA_character_,
+      Fecha_Georref = NA_character_,
+      stringsAsFactors = FALSE
+    )
+    write.csv(coords_manual, RUTA_COORDS, row.names = FALSE, fileEncoding = "UTF-8")
   }
   
   SIN_GEORREF <- sin_georref_base %>%
