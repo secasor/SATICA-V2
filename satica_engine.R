@@ -100,14 +100,25 @@ if (length(archivos) > 0) {
 
 # Fallback robusto en la nube si no hay archivos locales Excel a procesar
 if (is.null(historial_incendios) || nrow(historial_incendios) == 0) {
-  message("  🛰️  Sin nuevos archivos locales. Cargando historial consolidado de respaldo desde URL...")
-  url_historial <- "https://secasor.github.io/SATICA-V2/data_master/SATICA_HISTORIAL_v2.2.rds"
-  historial_incendios <- tryCatch({
-    readRDS(url(url_historial))
-  }, error = function(e) {
-    message("  ⚠️  No se pudo descargar el historial consolidado. Creando estructura de respaldo vacía.")
-    data.frame(COD_UNICO_14 = character(), FECHA = as.Date(character()), stringsAsFactors = FALSE)
-  })
+  message("  🛰️  Sin nuevos archivos locales. Cargando historial consolidado...")
+  
+  if (file.exists("data_master/SATICA_HISTORIAL_v2.2.rds")) {
+    message("  📦 Cargando historial local existente...")
+    historial_incendios <- tryCatch({
+      readRDS("data_master/SATICA_HISTORIAL_v2.2.rds")
+    }, error = function(e) NULL)
+  }
+  
+  if (is.null(historial_incendios) || nrow(historial_incendios) == 0) {
+    message("  🌐 Cargando historial de respaldo desde URL...")
+    url_historial <- "https://secasor.github.io/SATICA-V2/data_master/SATICA_HISTORIAL_v2.2.rds"
+    historial_incendios <- tryCatch({
+      readRDS(url(url_historial))
+    }, error = function(e) {
+      message("  ⚠️  No se pudo descargar el historial consolidado. Creando estructura de respaldo vacía.")
+      data.frame(COD_UNICO_14 = character(), FECHA = as.Date(character()), stringsAsFactors = FALSE)
+    })
+  }
 }
 
 # 4. CÁLCULO DE ESTADÍSTICAS (SUERTE Y HACIENDA CRONOLÓGICA)
