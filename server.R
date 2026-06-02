@@ -126,7 +126,7 @@ server <- function(input, output, session) {
     df_v <- NULL
     
     if (.ON_CLOUD) {
-      df_v <- tryCatch({ read.csv(url("https://secasor.github.io/SATICA%20V2/visitas_cvc.csv"), stringsAsFactors = FALSE) %>% clean_names() }, error = function(e) NULL)
+      df_v <- tryCatch({ read.csv(url("https://secasor.github.io/SATICA-V2/visitas_cvc.csv"), stringsAsFactors = FALSE) %>% clean_names() }, error = function(e) NULL)
     } else {
       if (file.exists(ruta_csv)) {
         df_v <- tryCatch({ read.csv(ruta_csv, stringsAsFactors = FALSE) %>% clean_names() }, error = function(e) NULL)
@@ -186,7 +186,7 @@ server <- function(input, output, session) {
   detect_goes_r <- reactive({
     timer_goes()
     if (.ON_CLOUD) {
-      url_goes <- "https://secasor.github.io/SATICA%20V2/data_master/GOES16_Alertas.csv"
+      url_goes <- "https://secasor.github.io/SATICA-V2/data_master/GOES16_Alertas.csv"
       tryCatch({
         read.csv(url(url_goes), stringsAsFactors = FALSE) %>%
           mutate(cod_unico = as.character(cod_unico)) %>%
@@ -379,7 +379,7 @@ server <- function(input, output, session) {
   # --- CARGAR TRAYECTORIAS HYSPLIT ---
   hysplit_r <- reactive({
     if (.ON_CLOUD) {
-      plumas <- tryCatch(readRDS(url("https://secasor.github.io/SATICA%20V2/data_master/HYSPLIT_plumas.rds")), error = function(e) NULL)
+      plumas <- tryCatch(readRDS(url("https://secasor.github.io/SATICA-V2/data_master/HYSPLIT_plumas.rds")), error = function(e) NULL)
       return(plumas)
     } else {
       if (file.exists("data_master/HYSPLIT_plumas.rds")) {
@@ -624,7 +624,7 @@ server <- function(input, output, session) {
           file.copy(local_pdf, file)
         } else {
           # Descargar del repositorio en la nube
-          url_pdf <- "https://alexbarona-pixel.github.io/SATICA%20V2/data_master/Boletin_SATICA_latest.pdf"
+          url_pdf <- "https://secasor.github.io/SATICA-V2/data_master/Boletin_SATICA_latest.pdf"
           res <- tryCatch({
             httr::GET(url_pdf, httr::write_disk(file, overwrite = TRUE))
           }, error = function(e) NULL)
@@ -847,7 +847,7 @@ server <- function(input, output, session) {
     if (file.exists("data_master/SATICA_HISTORIAL_v2.2.rds")) {
       historial_crudo <- tryCatch(readRDS("data_master/SATICA_HISTORIAL_v2.2.rds"), error = function(e) NULL)
     } else if (.ON_CLOUD) {
-      historial_crudo <- tryCatch(readRDS(url("https://secasor.github.io/SATICA%20V2/data_master/SATICA_HISTORIAL_v2.2.rds")), error = function(e) NULL)
+      historial_crudo <- tryCatch(readRDS(url("https://secasor.github.io/SATICA-V2/data_master/SATICA_HISTORIAL_v2.2.rds")), error = function(e) NULL)
     }
     if (is.null(historial_crudo)) {
       historial_crudo <- data.frame(COD_UNICO_14 = character(), FECHA = as.Date(character()), stringsAsFactors = FALSE)

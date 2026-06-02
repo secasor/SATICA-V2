@@ -79,12 +79,12 @@ jobs:
       - name: 🛰️ [1/2] Correr Centinela Satelital (Alertas Telegram)
         run: |
           # El centinela se ejecuta para escanear fuegos y notificar al instante a Telegram
-          Rscript centinela_satelital.R
+          Rscript -e "source('centinela_satelital.R', encoding = 'UTF-8')"
 
       - name: 🤖 [2/2] Ejecutar Motor SATICA Completo (XGBoost V9 + Consolidación)
         run: |
           # Corre el motor central para recalcular semáforos, predicciones de IA y summary JSON
-          Rscript satica_engine.R
+          Rscript -e "source('satica_engine.R', encoding = 'UTF-8')"
 
       - name: 📊 Compilar Reporte Rmd a HTML Estático
         run: |
@@ -97,8 +97,8 @@ jobs:
             echo "🚀 Iniciando compilación de Boletín Oficial (Día: $DIA_MES, Trigger: $EVENTO)..."
             # Renderizar el R Markdown a la carpeta www/ para el portal
             Rscript -e 'rmarkdown::render("reporte.Rmd", output_file = "www/reporte.html")'
-            # Compilar el Reporte a PDF mediante pagedown
-            Rscript -e 'pagedown::chrome_print("www/reporte.html", output = "data_master/Boletin_SATICA_latest.pdf")'
+            # Compilar el Reporte a PDF mediante pagedown con flags de seguridad no-sandbox para GHA
+            Rscript -e "pagedown::chrome_print('www/reporte.html', output = 'data_master/Boletin_SATICA_latest.pdf', extra_args = c('--no-sandbox', '--disable-gpu'))"
           fi
 
       - name: 📂 Estructurar archivos para GitHub Pages

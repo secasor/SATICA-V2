@@ -123,7 +123,7 @@ tryCatch({
   
   master_rds <- cargar_rds_hibrido(
     "data_master/SATICA_MASTER_v2.2.rds",
-    "https://secasor.github.io/SATICA%20V2/data_master/SATICA_MASTER_v2.2.rds"
+    "https://secasor.github.io/SATICA-V2/data_master/SATICA_MASTER_v2.2.rds"
   )
   
   formatear_tiempo_g <- function(dias) {
@@ -174,12 +174,12 @@ tryCatch({
     load(cache_rest_path, envir = .GlobalEnv)
   } else if (.ON_CLOUD) {
     message("🌐 CLOUD CACHE: Descargando Base Geoespacial Estática desde Portal de GitHub Pages...")
-    DATOS_ESPACIALES_BASE <- readRDS(url("https://secasor.github.io/SATICA%20V2/data_estatica/GEO_CACHE_SATICA.rds"))
+    DATOS_ESPACIALES_BASE <- readRDS(url("https://secasor.github.io/SATICA-V2/data_estatica/GEO_CACHE_SATICA.rds"))
     
     # Cargar archivo .RData desde la URL descargándolo a un archivo temporal
     temp_rest <- tempfile(fileext = ".RData")
     tryCatch({
-      download.file("https://secasor.github.io/SATICA%20V2/data_estatica/REST_CACHE_SATICA.RData", temp_rest, mode = "wb", quiet = TRUE)
+      download.file("https://secasor.github.io/SATICA-V2/data_estatica/REST_CACHE_SATICA.RData", temp_rest, mode = "wb", quiet = TRUE)
       load(temp_rest, envir = .GlobalEnv)
     }, error = function(e) {
       message("⚠️ Error al descargar REST_CACHE_SATICA.RData: ", e$message)
@@ -353,7 +353,7 @@ tryCatch({
   } else if (.ON_CLOUD) {
     message("🌐 Descargando Punto Ciego desde GitHub Pages...")
     sin_georref_base <- tryCatch({
-      read.csv(url("https://secasor.github.io/SATICA%20V2/resultados_diagnostico/punto_ciego_suroriente.csv"),
+      read.csv(url("https://secasor.github.io/SATICA-V2/resultados_diagnostico/punto_ciego_suroriente.csv"),
                stringsAsFactors = FALSE, encoding = "UTF-8") %>%
         mutate(
           COD_HDA_8       = toupper(trimws(COD_HDA_8)),
@@ -387,7 +387,7 @@ tryCatch({
   } else if (.ON_CLOUD) {
     message("🌐 Descargando Coordenadas Manuales desde GitHub Pages...")
     coords_manual <- tryCatch({
-      read.csv(url("https://secasor.github.io/SATICA%20V2/sin_georref_coords.csv"),
+      read.csv(url("https://secasor.github.io/SATICA-V2/sin_georref_coords.csv"),
                stringsAsFactors = FALSE, encoding = "UTF-8") %>%
         mutate(COD_HDA_8 = toupper(trimws(COD_HDA_8)))
     }, error = function(e) {
