@@ -610,12 +610,56 @@ server <- function(input, output, session) {
   })
   
   output$descargar_reporte <- downloadHandler(
-    filename = function() { paste0("Boletin_SATICA_", Sys.Date(), ".pdf") },
+    filename = function() {
+      if (input$tipo_boletin == "oficial") {
+        return("Boletin_SATICA_latest.pdf")
+      } else {
+        return(paste0("Boletin_SATICA_", Sys.Date(), ".pdf"))
+      }
+    },
     content = function(file) {
-      temp_rmd <- file.path(tempdir(), "reporte.Rmd")
-      file.copy("reporte.Rmd", temp_rmd, overwrite = TRUE)
-      out_html <- rmarkdown::render(temp_rmd, params = list(datos = datos_r()), quiet = TRUE)
-      pagedown::chrome_print(out_html, output = file)
+      if (input$tipo_boletin == "oficial") {
+        local_pdf <- "data_master/Boletin_SATICA_latest.pdf"
+        if (file.exists(local_pdf)) {
+          file.copy(local_pdf, file)
+        } else {
+          # Descargar del repositorio en la nube
+          url_pdf <- "https://alexbarona-pixel.github.io/SATICA%20V2/data_master/Boletin_SATICA_latest.pdf"
+          res <- tryCatch({
+            httr::GET(url_pdf, httr::write_disk(file, overwrite = TRUE))
+          }, error = function(e) NULL)
+          
+          if (is.null(res) || httr::status_code(res) != 200) {
+            if (file.exists("www/data_master/Boletin_SATICA_latest.pdf")) {
+              file.copy("www/data_master/Boletin_SATICA_latest.pdf", file)
+            } else {
+              writeLines("El Boletín Oficial quincenal no se encuentra disponible localmente y no hay conexión a Internet. Por favor, seleccione la opción 'Regenerar en Vivo' o compruebe su conexión.", file)
+            }
+          }
+        }
+      } else {
+        showModal(modalDialog(
+          title = "Generando Boletín en Vivo",
+          div(style = "text-align: center; padding: 20px;",
+              icon("cog", class = "fa-spin fa-3x", style = "color: #e74c3c; margin-bottom: 15px;"),
+              p("Renderizando Reporte Rmd y ejecutando Headless Chrome..."),
+              p("Este proceso puede tardar de 1 a 2 minutos.")),
+          footer = NULL,
+          easyClose = FALSE
+        ))
+        
+        tryCatch({
+          temp_rmd <- file.path(tempdir(), "reporte.Rmd")
+          file.copy("reporte.Rmd", temp_rmd, overwrite = TRUE)
+          out_html <- rmarkdown::render(temp_rmd, params = list(datos = datos_r()), quiet = TRUE)
+          pagedown::chrome_print(out_html, output = file)
+          removeModal()
+        }, error = function(e) {
+          removeModal()
+          showNotification(paste("Error al generar PDF en vivo:", e$message), type = "error")
+          writeLines(paste("Error de compilación:", e$message), file)
+        })
+      }
     }
   )
   

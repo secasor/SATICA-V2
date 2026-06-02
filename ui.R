@@ -194,6 +194,18 @@ ui <- dashboardPage(
     ),
     hr(style = "border-color: #2e4a6a; margin: 5px 0;"),
 
+    # ── Tipo de Boletín PDF ──
+    div(
+      style = "padding: 0 12px 6px 12px;",
+      pickerInput("tipo_boletin", "Boletín PDF:",
+        choices = c("Último Oficial (15 y 30)" = "oficial",
+                    "Regenerar en Vivo (Dinámico)" = "vivo"),
+        multiple = FALSE,
+        selected = "oficial",
+        width = "100%"
+      )
+    ),
+
     # ── Botones de acción ──
     div(
       class = "sidebar-btns", style = "padding: 0 12px;",

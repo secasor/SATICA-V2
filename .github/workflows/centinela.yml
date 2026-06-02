@@ -88,10 +88,18 @@ jobs:
 
       - name: 📊 Compilar Reporte Rmd a HTML Estático
         run: |
-          # Renderizar el R Markdown a la carpeta www/ para el portal
-          Rscript -e 'rmarkdown::render("reporte.Rmd", output_file = "www/reporte.html")'
-          # Compilar el Reporte a PDF mediante pagedown
-          Rscript -e 'pagedown::chrome_print("www/reporte.html", output = "data_master/Boletin_SATICA_latest.pdf")'
+          # Solo compilar el boletín los días 15, 30, 31, o si es disparo manual / push (no programado)
+          DIA_MES=$(date +%d)
+          EVENTO="${{ github.event_name }}"
+          if [ "$EVENTO" = "schedule" ] && [ "$DIA_MES" != "15" ] && [ "$DIA_MES" != "30" ] && [ "$DIA_MES" != "31" ]; then
+            echo "⏭️ Hoy es día $DIA_MES y el trigger es programado ($EVENTO). Saltando generación de Boletín Oficial (solo se genera quincenalmente los 15 y 30)."
+          else
+            echo "🚀 Iniciando compilación de Boletín Oficial (Día: $DIA_MES, Trigger: $EVENTO)..."
+            # Renderizar el R Markdown a la carpeta www/ para el portal
+            Rscript -e 'rmarkdown::render("reporte.Rmd", output_file = "www/reporte.html")'
+            # Compilar el Reporte a PDF mediante pagedown
+            Rscript -e 'pagedown::chrome_print("www/reporte.html", output = "data_master/Boletin_SATICA_latest.pdf")'
+          fi
 
       - name: 📂 Estructurar archivos para GitHub Pages
         run: |
