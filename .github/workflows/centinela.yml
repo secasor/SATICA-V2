@@ -53,6 +53,10 @@ jobs:
           r-version: '4.4.0'
           use-public-rspm: true # Usa binarios de RSPM (ultra-rápido)
 
+      - name: 🌐 Configurar Chrome Headless
+        uses: browser-actions/setup-chrome@v1
+        id: setup-chrome
+
       - name: 📦 Cache de paquetes R
         uses: actions/cache@v4
         with:
@@ -87,6 +91,8 @@ jobs:
           Rscript -e "source('satica_engine.R', encoding = 'UTF-8')"
 
       - name: 📊 Compilar Reporte Rmd a HTML Estático
+        env:
+          PAGEDOWN_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: |
           # Solo compilar el boletín los días 15, 30, 31, o si es disparo manual / push (no programado)
           DIA_MES=$(date +%d)
