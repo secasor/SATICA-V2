@@ -111,7 +111,7 @@ if (is.null(historial_incendios) || nrow(historial_incendios) == 0) {
   
   if (is.null(historial_incendios) || nrow(historial_incendios) == 0) {
     message("  🌐 Cargando historial de respaldo desde URL...")
-    url_historial <- "https://secasor.github.io/SATICA-V2/data_master/SATICA_HISTORIAL_v2.2.rds"
+    url_historial <- "https://secasor.github.io/SATICA%20V2/data_master/SATICA_HISTORIAL_v2.2.rds"
     historial_incendios <- tryCatch({
       readRDS(url(url_historial))
     }, error = function(e) {
@@ -346,12 +346,14 @@ master_final <- master_final %>%
       Satelite_Fuego == TRUE ~ "CRITICO", # ¡Está ardiendo ahora mismo!
       GOES_Fuego     == TRUE ~ "CRITICO", # ¡Fuego dinámico capturado por GOES-16!
       Alerta_Combustion == "ALTA (Extrema Resequedad)" ~ "CRITICO", # Pólvora seca
-      is.na(FECHA_ULT_I_SUE) & is.na(FECHA_ULT_I_HDA) ~ "BAJO",
-      DIFF_MESES >= -1 & DIFF_MESES <= 1 ~ "CRITICO",
-      DIFF_HDA_MESES >= -0.5 ~ "CRITICO",
-      DIFF_MESES > 1 & DIFF_MESES <= 2 ~ "ALTO",
-      DIFF_HDA_MESES < -0.5 & DIFF_HDA_MESES >= -1.5 ~ "ALTO",
-      DIFF_MESES < -1 & DIFF_MESES >= -3 ~ "OBSERVACION",
+      is.na(FECHA_ULT_I_HDA) ~ "BAJO",
+      DIFF_HDA_MESES < -3 ~ "BAJO",
+      DIFF_HDA_MESES >= -3 & DIFF_HDA_MESES < -2 ~ "OBSERVACION",
+      DIFF_HDA_MESES >= -2 & DIFF_HDA_MESES < -1 ~ "ALTO",
+      DIFF_HDA_MESES >= -1 & DIFF_HDA_MESES <= 1 ~ "CRITICO",
+      DIFF_HDA_MESES > 1 & DIFF_HDA_MESES <= 2 ~ "ALTO",
+      DIFF_HDA_MESES > 2 & DIFF_HDA_MESES <= 3 ~ "OBSERVACION",
+      DIFF_HDA_MESES > 3 ~ "MITIGADO",
       TRUE ~ "BAJO"
     ),
     col = case_when(
@@ -384,7 +386,7 @@ tryCatch({
       last_update = format(Sys.time(), "%Y-%m-%d %H:%M COT", tz = "America/Bogota"),
       active_fires_24h = sum(master_final$Satelite_Fuego == TRUE, na.rm = TRUE),
       goes_alerts_1h = sum(master_final$GOES_Fuego == TRUE, na.rm = TRUE),
-      critical_count = sum(master_final$riesgo == "CRITICO", na.rm = TRUE),
+      critical_count = length(unique(master_final$cod_hda_key[master_final$riesgo == "CRITICO"])),
       success_count = total_exitos
     )
     jsonlite::write_json(summary_data, "data_master/data_summary.json", auto_unbox = TRUE, pretty = TRUE)
@@ -401,3 +403,12 @@ message("✅ PROCESO EXITOSO: MASTER V2.4 GENERADO BAJO REGLAS DE BLINDAJE")
 message("📍 Municipios procesados: ", paste(unique(master_final$municipio), collapse = ", "))
 message("🔥 Hacienda Ejemplo: ", head(master_final$hda_nombre, 1), " en ", head(master_final$municipio, 1))
 message("==========================================================\n")
+
+# --- GENERACIÓN DE ARCHIVOS DE DESCARGA ESTÁTICOS ---
+if (file.exists("R/generar_descargas_static.R")) {
+  tryCatch({
+    source("R/generar_descargas_static.R", encoding = "UTF-8")
+  }, error = function(e) {
+    message("⚠️ Error al generar descargas estáticas: ", e$message)
+  })
+}

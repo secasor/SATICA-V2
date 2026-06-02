@@ -254,6 +254,13 @@ ui <- dashboardPage(
       uiOutput("ui_buscar_resultados")
     ),
     div(
+      style = "padding: 0 12px 0 12px; width: 100%; box-sizing: border-box; margin-bottom: 10px;",
+      actionButton("btn_actualizar", "Actualizar Telemetría",
+        icon = icon("sync"),
+        style = "background-color:#c0392b; color:#fff; border:none; width:100%; font-weight:bold; display:block; margin:0 auto; border-radius:12px; padding:10px;"
+      )
+    ),
+    div(
       style = "padding: 0 12px 15px 12px; width: 100%; box-sizing: border-box;",
       actionButton("reset", "Vista General",
         icon = icon("globe-americas"),

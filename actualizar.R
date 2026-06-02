@@ -26,7 +26,7 @@ if (.hay_internet()) {
   # A. NASA FIRMS
   message("\n  [1/3] Descargando Órbitas NASA FIRMS (24 Horas)...")
   tryCatch({
-    source("R/api_nasa_firms.R", local = TRUE)
+    source("R/api_nasa_firms.R", local = TRUE, encoding = "UTF-8")
     message("  ✅ NASA FIRMS: Telemetría en vivo actualizada.")
   }, error = function(e) {
     message("  ⚠️  NASA FIRMS: Saltado o sin datos (", e$message, ")")
@@ -35,7 +35,7 @@ if (.hay_internet()) {
   # B. GOES-16 (NASA FIRMS Area API)
   message("\n  [2/3] Escaneando Satélite GOES-16 (Fuegos 1 Hora)...")
   tryCatch({
-    source("R/api_goes16.R", local = TRUE)
+    source("R/api_goes16.R", local = TRUE, encoding = "UTF-8")
     message("  ✅ GOES-16: Alertas dinámicas actualizadas.")
   }, error = function(e) {
     message("  ⚠️  GOES-16: Saltado o sin datos (", e$message, ")")
@@ -45,7 +45,7 @@ if (.hay_internet()) {
   message("\n  [3/3] Consultando Biomasa Sentinel-2...")
   tryCatch({
     if (requireNamespace("rgee", quietly = TRUE)) {
-      source("R/api_sentinel_rgee.R", local = TRUE)
+      source("R/api_sentinel_rgee.R", local = TRUE, encoding = "UTF-8")
       message("  ✅ Sentinel-2: Índices de biomasa actualizados.")
     } else {
       message("  ℹ️  Sentinel-2: Saltado (rgee no está instalado en este R).")
@@ -62,7 +62,7 @@ if (.hay_internet()) {
 # --- 2. EJECUTAR EL MOTOR CENTRAL DE PREDICCIÓN Y CONSOLIDACIÓN ---
 message("\n🤖 Ejecutando Motor de Consolidación y XGBoost V9...")
 tryCatch({
-  source("satica_engine.R", local = TRUE)
+  source("satica_engine.R", local = TRUE, encoding = "UTF-8")
   message("✅ MOTOR SATICA: Base de datos maestra consolidada exitosamente.")
 }, error = function(e) {
   stop("❌ ERROR FATAL en el Motor SATICA: ", e$message)

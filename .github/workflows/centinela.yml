@@ -67,7 +67,7 @@ jobs:
               RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest",
               CRAN = "https://cloud.r-project.org"
             ))
-            pkgs <- c("sf", "dplyr", "httr", "stringr", "readr", "janitor", "jsonlite", "openxlsx", "rmarkdown", "ggplot2", "visNetwork", "shinyWidgets", "shiny", "kableExtra")
+            pkgs <- c("sf", "dplyr", "httr", "stringr", "readr", "janitor", "jsonlite", "openxlsx", "rmarkdown", "ggplot2", "visNetwork", "shinyWidgets", "shiny", "kableExtra", "pagedown")
             to_install <- pkgs[!pkgs %in% installed.packages()[,"Package"]]
             if (length(to_install)) {
               message("Instalando: ", paste(to_install, collapse=", "))
@@ -90,6 +90,8 @@ jobs:
         run: |
           # Renderizar el R Markdown a la carpeta www/ para el portal
           Rscript -e 'rmarkdown::render("reporte.Rmd", output_file = "www/reporte.html")'
+          # Compilar el Reporte a PDF mediante pagedown
+          Rscript -e 'pagedown::chrome_print("www/reporte.html", output = "data_master/Boletin_SATICA_latest.pdf")'
 
       - name: 📂 Estructurar archivos para GitHub Pages
         run: |
@@ -108,10 +110,11 @@ jobs:
           cp -f data_estatica/GEO_CACHE_SATICA.rds www/data_estatica/
           cp -f data_estatica/REST_CACHE_SATICA.RData www/data_estatica/
           
-          # Copiamos KML, XLSX y CSV generados por el motor si existen
+          # Copiamos KML, XLSX, CSV y PDF generados por el motor si existen
           [ -f "data_master/SATICA_Seguimiento_latest.xlsx" ] && cp -f data_master/SATICA_Seguimiento_latest.xlsx www/data_master/ || echo "No XLSX"
           [ -f "data_master/Plantilla_Visitas_SATICA_latest.csv" ] && cp -f data_master/Plantilla_Visitas_SATICA_latest.csv www/data_master/ || echo "No CSV"
           [ -f "data_master/SATICA_GIS_latest.kml" ] && cp -f data_master/SATICA_GIS_latest.kml www/data_master/ || echo "No KML"
+          [ -f "data_master/Boletin_SATICA_latest.pdf" ] && cp -f data_master/Boletin_SATICA_latest.pdf www/data_master/ || echo "No PDF"
           [ -f "resultados_diagnostico/punto_ciego_suroriente.csv" ] && cp -f resultados_diagnostico/punto_ciego_suroriente.csv www/resultados_diagnostico/ || echo "No punto ciego"
           [ -f "sin_georref_coords.csv" ] && cp -f sin_georref_coords.csv www/ || echo "No manual coords"
           [ -f "visitas_cvc.csv" ] && cp -f visitas_cvc.csv www/ || echo "No visitas"
