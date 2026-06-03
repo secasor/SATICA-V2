@@ -66,50 +66,48 @@ if (nrow(fuegos_master) == 0) {
   if(!dir.exists("data_master")) dir.create("data_master")
   write.csv(data.frame(cod_unico = NA_character_, Mensaje = "Sin incendios en 24H"),
             "data_master/Incendios_Satelite_24H.csv", row.names = FALSE)
-  # IMPORTANTE: usar return() en vez de quit() para no cerrar R al ejecutar con source()
-  return(invisible(NULL))
-}
-
-# VIIRS define la confianza como: "l" (low), "n" (nominal), "h" (high)
-fuegos_alta_confianza <- fuegos_master %>%
-  filter(confidence %in% c("n", "h"))
-
-message(sprintf("🔍 Escaneando %d anomalías térmicas confirmadas continentales...", nrow(fuegos_alta_confianza)))
-
-# 3. Conversión Espacial (EPSG 4326 WGS84 - Nativo del Satélite)
-fuegos_sf <- st_as_sf(fuegos_alta_confianza, coords = c("longitude", "latitude"), crs = 4326)
-
-# 4. Ingesta Mapa Maestro SATICA
-message("🗺️ Cruzando contra Geometría de Cultivos (Caña_SOR_OK)...")
-cana_path <- normalizePath(list.files("capas", pattern = "SOR_OK\\.shp$", full.names = TRUE)[1])
-if (is.na(cana_path)) stop("No se encontró el archivo de geometría Caña_SOR_OK.shp en /capas")
-mapa_cana <- st_read(cana_path, quiet = TRUE) %>% 
-  st_make_valid() %>%
-  janitor::clean_names() %>%
-  st_transform(4326) # Sincronizar espectro de proyección con NASA
-
-# 5. Raycasting Intersección Exacta
-# left = FALSE asegura que solo se guardan los Fuegos que caen DENTRO de una suerte
-incendios_detectados <- st_join(fuegos_sf, mapa_cana, join = st_intersects, left = FALSE)
-
-# 6. Guardado del Reporte Definitivo
-if(!dir.exists("data_master")) dir.create("data_master")
-
-if (nrow(incendios_detectados) > 0) {
-  reporte_final <- suppressWarnings(incendios_detectados %>% 
-    st_drop_geometry() %>%
-    select(cod_unico, hda_nombre, municipio = nom_munici,
-           satelite = satellite, fecha_satelite = acq_date, 
-           hora_satelite = acq_time, brillo_termico = bright_ti4) %>%
-    arrange(desc(fecha_satelite), desc(hora_satelite)))
-  
-  write.csv(reporte_final, "data_master/Incendios_Satelite_24H.csv", row.names = FALSE)
-  message(sprintf("🚨 ¡ALERTA! El satélite confirmó %d incendios activos sobre los cultivos.", nrow(reporte_final)))
-  message("➡️ Reporte oficial guardado en: data_master/Incendios_Satelite_24H.csv")
-  print(head(reporte_final))
 } else {
-  message("✅ SATICA: El cielo está despejado. Cero (0) cruces satelitales térmicos sobre Caña hoy.")
-  # Crear archivo vacío con estructura para no romper el dashboard
-  write.csv(data.frame(cod_unico = NA_character_, Mensaje = "Sin incendios en 24H"), 
-            "data_master/Incendios_Satelite_24H.csv", row.names = FALSE)
+  # VIIRS define la confianza como: "l" (low), "n" (nominal), "h" (high)
+  fuegos_alta_confianza <- fuegos_master %>%
+    filter(confidence %in% c("n", "h"))
+  
+  message(sprintf("🔍 Escaneando %d anomalías térmicas confirmadas continentales...", nrow(fuegos_alta_confianza)))
+  
+  # 3. Conversión Espacial (EPSG 4326 WGS84 - Nativo del Satélite)
+  fuegos_sf <- st_as_sf(fuegos_alta_confianza, coords = c("longitude", "latitude"), crs = 4326)
+  
+  # 4. Ingesta Mapa Maestro SATICA
+  message("🗺️ Cruzando contra Geometría de Cultivos (Caña_SOR_OK)...")
+  cana_path <- normalizePath(list.files("capas", pattern = "SOR_OK\\.shp$", full.names = TRUE)[1])
+  if (is.na(cana_path)) stop("No se encontró el archivo de geometría Caña_SOR_OK.shp en /capas")
+  mapa_cana <- st_read(cana_path, quiet = TRUE) %>% 
+    st_make_valid() %>%
+    janitor::clean_names() %>%
+    st_transform(4326) # Sincronizar espectro de proyección con NASA
+  
+  # 5. Raycasting Intersección Exacta
+  # left = FALSE asegura que solo se guardan los Fuegos que caen DENTRO de una suerte
+  incendios_detectados <- st_join(fuegos_sf, mapa_cana, join = st_intersects, left = FALSE)
+  
+  # 6. Guardado del Reporte Definitivo
+  if(!dir.exists("data_master")) dir.create("data_master")
+  
+  if (nrow(incendios_detectados) > 0) {
+    reporte_final <- suppressWarnings(incendios_detectados %>% 
+      st_drop_geometry() %>%
+      select(cod_unico, hda_nombre, municipio = nom_munici,
+             satelite = satellite, fecha_satelite = acq_date, 
+             hora_satelite = acq_time, brillo_termico = bright_ti4) %>%
+      arrange(desc(fecha_satelite), desc(hora_satelite)))
+    
+    write.csv(reporte_final, "data_master/Incendios_Satelite_24H.csv", row.names = FALSE)
+    message(sprintf("🚨 ¡ALERTA! El satélite confirmó %d incendios activos sobre los cultivos.", nrow(reporte_final)))
+    message("➡️ Reporte oficial guardado en: data_master/Incendios_Satelite_24H.csv")
+    print(head(reporte_final))
+  } else {
+    message("✅ SATICA: El cielo está despejado. Cero (0) cruces satelitales térmicos sobre Caña hoy.")
+    # Crear archivo vacío con estructura para no romper el dashboard
+    write.csv(data.frame(cod_unico = NA_character_, Mensaje = "Sin incendios en 24H"), 
+              "data_master/Incendios_Satelite_24H.csv", row.names = FALSE)
+  }
 }

@@ -17,7 +17,8 @@ library(readr)
 sf_use_s2(FALSE)
 options(warn = -1)
 
-message("🛰️  Iniciando escaneo FIRMS (reemplazo GOES-16)...")
+ejecutar_escaner_goes16 <- function() {
+  message("🛰️  Iniciando escaneo FIRMS (reemplazo GOES-16)...")
 
 # --- Credenciales -------------------------------------------------------
 # La llave se toma del secreto GitHub Actions (o del archivo si se corre local)
@@ -206,5 +207,8 @@ write.csv(alertas_final, "data_master/GOES16_Alertas.csv", row.names = FALSE)
 message(sprintf("🚨 ¡ALERTA! FIRMS confirmó focos en %d suertes de caña.", nrow(alertas_final)))
 print(alertas_final)
 
-message("✅ Escaneo FIRMS finalizado.")
-return(invisible(NULL))
+  message("✅ Escaneo FIRMS finalizado.")
+  return(invisible(NULL))
+}
+
+ejecutar_escaner_goes16()
