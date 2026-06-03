@@ -10,12 +10,57 @@ library(janitor)
 library(visNetwork)
 library(dplyr)
 library(sf)
+library(tidyr)
 # [BLINDAJE 2: Eliminda la dependencia de readxl en vivo]
 
 server <- function(input, output, session) {
-  
-  update_trigger <- reactiveVal(0)
 
+  # =========================================================================
+  # ⚡ SMART SYNC DIFERIDO: Actualizar datos SIN bloquear el arranque
+  # =========================================================================
+  # Este observer se dispara UNA SOLA VEZ, 3 segundos después de que el
+  # dashboard se renderice, permitiendo que el usuario vea la UI instantáneamente.
+  .sync_timer <- reactiveTimer(3000)
+  .sync_done <- reactiveVal(FALSE)
+  
+  observeEvent(.sync_timer(), {
+    if (!.sync_done() && exists(".SATICA_NEEDS_SYNC") && .SATICA_NEEDS_SYNC) {
+      .sync_done(TRUE)
+      message("🔄 [SYNC DIFERIDO] Iniciando sincronización en segundo plano...")
+      
+      showNotification(
+        "🛰️ Actualizando datos satelitales...",
+        type = "message", duration = NULL, id = "sync_notif"
+      )
+      
+      tryCatch({
+        message("  🛰️  [1/2] Consultando NASA FIRMS (VIIRS 375m + MODIS)...")
+        source("R/api_nasa_firms.R")
+        message("  ✅ NASA FIRMS: Telemetría actualizada.")
+      }, error = function(e) {
+        message("  ⚠️  NASA FIRMS: ", e$message)
+      })
+      
+      tryCatch({
+        message("  ⚙️  [2/2] Ejecutando Motor de Consolidación y Predicción...")
+        source("satica_engine.R")
+        message("  ✅ Motor SATICA: Base maestra actualizada.")
+      }, error = function(e) {
+        message("  ❌ Error en Motor SATICA: ", e$message)
+      })
+      
+      removeNotification("sync_notif")
+      showNotification(
+        "✅ Datos satelitales actualizados. Recargue para ver cambios.",
+        type = "message", duration = 8
+      )
+      
+      message("✅ [SYNC DIFERIDO] Completado.")
+    } else {
+      .sync_done(TRUE)  # Evitar futuras ejecuciones
+    }
+  }, ignoreInit = TRUE)
+  
   # --- BUSCADOR DE HACIENDAS (bs4Dash fix: usa Shiny.setInputValue en lugar de actionLink) ---
   output$ui_buscar_resultados <- renderUI({
     query <- trimws(input$buscar_hda)
@@ -125,12 +170,8 @@ server <- function(input, output, session) {
     ruta_csv <- "visitas_cvc.csv"
     df_v <- NULL
     
-    if (.ON_CLOUD) {
-      df_v <- tryCatch({ read.csv(url("https://secasor.github.io/SATICA-V2/visitas_cvc.csv"), stringsAsFactors = FALSE) %>% clean_names() }, error = function(e) NULL)
-    } else {
-      if (file.exists(ruta_csv)) {
-        df_v <- tryCatch({ read.csv(ruta_csv, stringsAsFactors = FALSE) %>% clean_names() }, error = function(e) NULL)
-      }
+    if (file.exists(ruta_csv)) {
+      df_v <- tryCatch({ read.csv(ruta_csv, stringsAsFactors = FALSE) %>% clean_names() }, error = function(e) NULL)
     }
     
     if(!is.null(df_v) && all(c("cod_hda_key", "fecha_visita") %in% names(df_v))) {
@@ -152,9 +193,14 @@ server <- function(input, output, session) {
     return(data.frame(COD_HDA_KEY = character(), FECHA_VISITA = as.Date(character()), RADICADO = character()))
   })
   
-  # --- PROCESAMIENTO ESTRAT\u00c9GICO Y MATRIZ TEMPORAL ---
-  centros_global <- suppressWarnings(st_point_on_surface(DATOS_OFICIALES))
-  coords_global <- as.data.frame(st_coordinates(centros_global))
+  # --- PROCESAMIENTO ESTRATÉGICO Y MATRIZ TEMPORAL ---
+  # Usar centroides pre-calculados desde el cache de global.R
+  if (exists(".CENTROIDES_PRECALCULADOS") && !is.null(.CENTROIDES_PRECALCULADOS)) {
+    coords_global <- .CENTROIDES_PRECALCULADOS
+  } else {
+    centros_global <- suppressWarnings(st_point_on_surface(DATOS_OFICIALES))
+    coords_global <- as.data.frame(st_coordinates(centros_global))
+  }
   
   # --- DEEP LINKING DESDE TELEGRAM (SATICA V2.0) ---
   observeEvent(session$clientData$url_search, {
@@ -180,20 +226,12 @@ server <- function(input, output, session) {
     }
   }, once = TRUE)
   
-  # Polling cada 30 segundos usando reactiveTimer en nube o reactivo local
-  timer_goes <- reactiveTimer(30000)
-  
-  detect_goes_r <- reactive({
-    timer_goes()
-    if (.ON_CLOUD) {
-      url_goes <- "https://secasor.github.io/SATICA-V2/data_master/GOES16_Alertas.csv"
-      tryCatch({
-        read.csv(url(url_goes), stringsAsFactors = FALSE) %>%
-          mutate(cod_unico = as.character(cod_unico)) %>%
-          select(cod_unico, GOES_Fuego, Estado_GOES) %>%
-          distinct(cod_unico, .keep_all = TRUE)
-      }, error = function(e) data.frame(cod_unico=character(), GOES_Fuego=logical(), Estado_GOES=character()))
-    } else {
+  detect_goes_r <- reactivePoll(15000, session,
+    checkFunc = function() {
+      ruta <- "data_master/GOES16_Alertas.csv"
+      if (file.exists(ruta)) file.info(ruta)$mtime[1] else "no_file"
+    },
+    valueFunc = function() {
       ruta <- "data_master/GOES16_Alertas.csv"
       if (file.exists(ruta)) {
         tryCatch({ 
@@ -206,16 +244,19 @@ server <- function(input, output, session) {
         data.frame(cod_unico=character(), GOES_Fuego=logical(), Estado_GOES=character())
       }
     }
-  })
+  )
 
   # --- PROCESAMIENTO ESTRAT\u00c9GICO Y MATRIZ TEMPORAL ---
   datos_r <- reactive({
     req(detect_goes_r())
-    update_trigger() # Trigger de actualización manual
     
-    # 1. Preparar datos base con coordenadas
-    centros_tmp <- suppressWarnings(st_point_on_surface(DATOS_OFICIALES))
-    coords_tmp  <- as.data.frame(st_coordinates(centros_tmp))
+    # 1. Preparar datos base con coordenadas (usando caché de centroides)
+    if (exists("coords_global") && nrow(coords_global) == nrow(DATOS_OFICIALES)) {
+      coords_tmp <- coords_global
+    } else {
+      centros_tmp <- suppressWarnings(st_point_on_surface(DATOS_OFICIALES))
+      coords_tmp  <- as.data.frame(st_coordinates(centros_tmp))
+    }
     
     df <- DATOS_OFICIALES %>%
       mutate(LAT = coords_tmp$Y, LON = coords_tmp$X)
@@ -378,14 +419,9 @@ server <- function(input, output, session) {
   
   # --- CARGAR TRAYECTORIAS HYSPLIT ---
   hysplit_r <- reactive({
-    if (.ON_CLOUD) {
-      plumas <- tryCatch(readRDS(url("https://secasor.github.io/SATICA-V2/data_master/HYSPLIT_plumas.rds")), error = function(e) NULL)
+    if (file.exists("data_master/HYSPLIT_plumas.rds")) {
+      plumas <- tryCatch(readRDS("data_master/HYSPLIT_plumas.rds"), error = function(e) NULL)
       return(plumas)
-    } else {
-      if (file.exists("data_master/HYSPLIT_plumas.rds")) {
-        plumas <- tryCatch(readRDS("data_master/HYSPLIT_plumas.rds"), error = function(e) NULL)
-        return(plumas)
-      }
     }
     return(NULL)
   })
@@ -610,56 +646,12 @@ server <- function(input, output, session) {
   })
   
   output$descargar_reporte <- downloadHandler(
-    filename = function() {
-      if (input$tipo_boletin == "oficial") {
-        return("Boletin_SATICA_latest.pdf")
-      } else {
-        return(paste0("Boletin_SATICA_", Sys.Date(), ".pdf"))
-      }
-    },
+    filename = function() { paste0("Boletin_SATICA_", Sys.Date(), ".pdf") },
     content = function(file) {
-      if (input$tipo_boletin == "oficial") {
-        local_pdf <- "data_master/Boletin_SATICA_latest.pdf"
-        if (file.exists(local_pdf)) {
-          file.copy(local_pdf, file)
-        } else {
-          # Descargar del repositorio en la nube
-          url_pdf <- "https://secasor.github.io/SATICA-V2/data_master/Boletin_SATICA_latest.pdf"
-          res <- tryCatch({
-            httr::GET(url_pdf, httr::write_disk(file, overwrite = TRUE))
-          }, error = function(e) NULL)
-          
-          if (is.null(res) || httr::status_code(res) != 200) {
-            if (file.exists("www/data_master/Boletin_SATICA_latest.pdf")) {
-              file.copy("www/data_master/Boletin_SATICA_latest.pdf", file)
-            } else {
-              writeLines("El Boletín Oficial quincenal no se encuentra disponible localmente y no hay conexión a Internet. Por favor, seleccione la opción 'Regenerar en Vivo' o compruebe su conexión.", file)
-            }
-          }
-        }
-      } else {
-        showModal(modalDialog(
-          title = "Generando Boletín en Vivo",
-          div(style = "text-align: center; padding: 20px;",
-              icon("cog", class = "fa-spin fa-3x", style = "color: #e74c3c; margin-bottom: 15px;"),
-              p("Renderizando Reporte Rmd y ejecutando Headless Chrome..."),
-              p("Este proceso puede tardar de 1 a 2 minutos.")),
-          footer = NULL,
-          easyClose = FALSE
-        ))
-        
-        tryCatch({
-          temp_rmd <- file.path(tempdir(), "reporte.Rmd")
-          file.copy("reporte.Rmd", temp_rmd, overwrite = TRUE)
-          out_html <- rmarkdown::render(temp_rmd, params = list(datos = datos_r()), quiet = TRUE)
-          pagedown::chrome_print(out_html, output = file)
-          removeModal()
-        }, error = function(e) {
-          removeModal()
-          showNotification(paste("Error al generar PDF en vivo:", e$message), type = "error")
-          writeLines(paste("Error de compilación:", e$message), file)
-        })
-      }
+      temp_rmd <- file.path(tempdir(), "reporte.Rmd")
+      file.copy("reporte.Rmd", temp_rmd, overwrite = TRUE)
+      out_html <- rmarkdown::render(temp_rmd, params = list(datos = datos_r()), quiet = TRUE)
+      pagedown::chrome_print(out_html, output = file)
     }
   )
   
@@ -842,16 +834,8 @@ server <- function(input, output, session) {
   # La base hist\u00f3rica bebe del SATICA_HISTORIAL precalculado recuperando la cardinalidad temporal total.
   base_historica_real <- reactive({
     
-    # 1. Cargamos el mini-RDS (Milisegundos) que guarda cada incendio individual (Carga Híbrida)
-    historial_crudo <- NULL
-    if (file.exists("data_master/SATICA_HISTORIAL_v2.2.rds")) {
-      historial_crudo <- tryCatch(readRDS("data_master/SATICA_HISTORIAL_v2.2.rds"), error = function(e) NULL)
-    } else if (.ON_CLOUD) {
-      historial_crudo <- tryCatch(readRDS(url("https://secasor.github.io/SATICA-V2/data_master/SATICA_HISTORIAL_v2.2.rds")), error = function(e) NULL)
-    }
-    if (is.null(historial_crudo)) {
-      historial_crudo <- data.frame(COD_UNICO_14 = character(), FECHA = as.Date(character()), stringsAsFactors = FALSE)
-    }
+    # 1. Cargamos el mini-RDS (Milisegundos) que guarda cada incendio individual
+    historial_crudo <- readRDS("data_master/SATICA_HISTORIAL_v2.2.rds")
     
     # 2. Rescatamos el mapa blindado para obtener Nombres y Municipios
     df_nombres <- DATOS_OFICIALES %>% 
@@ -1051,90 +1035,4 @@ server <- function(input, output, session) {
   output$plot_top10 <- renderPlot({ grafico_top10() })
   output$dl_plot_top10 <- downloadHandler(filename = function() { paste0("SATICA_Top10_", Sys.Date(), ".png") }, content = function(file) { ggsave(file, plot = grafico_top10(), width = 10, height = 6, dpi = 300, bg = "white") })
   output$descargar_historia_csv <- downloadHandler(filename = function() { paste0("Auditoria_Historica_SATICA_", Sys.Date(), ".csv") }, content = function(file) { write.csv(datos_h(), file, row.names = FALSE) })
-  
-  # --- OBSERVER PARA ACTUALIZACIÓN MANUAL ---
-  observeEvent(input$btn_actualizar, {
-    showModal(modalDialog(
-      title = "Actualizando Telemetría",
-      div(style = "text-align: center; padding: 20px;",
-          icon("sync", class = "fa-spin fa-3x", style = "color: #c0392b; margin-bottom: 15px;"),
-          p("Descargando focos de calor recientes de la NASA e iniciando predicciones del motor..."),
-          p("Por favor espere. Este proceso puede tardar unos segundos.")),
-      footer = NULL,
-      easyClose = FALSE
-    ))
-    
-    tryCatch({
-      # Ejecutar scripts de actualización (nasa firms y engine)
-      if (file.exists("R/api_nasa_firms.R")) {
-        source("R/api_nasa_firms.R", local = TRUE, encoding = "UTF-8")
-      }
-      if (file.exists("satica_engine.R")) {
-        source("satica_engine.R", local = TRUE, encoding = "UTF-8")
-      }
-      
-      # Recargar master_rds localmente
-      master_rds <- readRDS("data_master/SATICA_MASTER_v2.2.rds")
-      
-      formatear_tiempo_g <- function(dias) {
-        if (is.na(dias) || dias == 0) return("Sin Historial")
-        if (dias < 60) return(paste(round(dias), "días"))
-        meses <- floor(dias / 30.44); sobra <- round(dias %% 30.44)
-        txt_m <- ifelse(meses == 1, "1 mes", paste(meses, "meses"))
-        txt_d <- ifelse(sobra > 0, paste(sobra, "días"), "")
-        return(trimws(paste(txt_m, txt_d)))
-      }
-      
-      DB_RIESGO <- master_rds %>%
-        group_by(cod_hda_key) %>%
-        summarise(
-          TOTAL_HISTORICO = max(N_EVENTOS_HDA,      na.rm = TRUE),
-          N_EVENTOS       = max(N_EVENTOS_HDA,      na.rm = TRUE),
-          FECHA_ULT_I     = max(FECHA_ULT_I_HDA,    na.rm = TRUE),
-          CICLO_DIAS      = mean(FRECUENCIA_HDA_DIAS,na.rm = TRUE),
-          TXT_CICLO       = sapply(mean(FRECUENCIA_HDA_DIAS, na.rm = TRUE), formatear_tiempo_g),
-          DIFF_MESES      = min(DIFF_HDA_MESES,      na.rm = TRUE),
-          RIESGO = { idx <- which.min(DIFF_HDA_MESES); if (length(idx) > 0) riesgo[idx] else NA_character_ },
-          COL    = { idx <- which.min(DIFF_HDA_MESES); if (length(idx) > 0) col[idx]    else NA_character_ },
-          FECHA_ESTIMADA  = as.Date(max(FECHA_ULT_I_HDA, na.rm = TRUE) +
-                                      mean(FRECUENCIA_HDA_DIAS, na.rm = TRUE)),
-          SAT_FUEGO       = if("Satelite_Fuego" %in% names(.)) any(Satelite_Fuego == TRUE, na.rm = TRUE) else FALSE,
-          GOES_FUEGO      = if("GOES_Fuego" %in% names(.)) any(GOES_Fuego == TRUE, na.rm = TRUE) else FALSE,
-          ESTADO_GOES     = if("Estado_GOES" %in% names(.)) first(na.omit(Estado_GOES)) else "Normal",
-          MAX_NDVI        = if("NDVI" %in% names(.)) max(NDVI, na.rm = TRUE) else 0.5,
-          ESTADO_BIOMASA  = if("Alerta_Combustion" %in% names(.)) first(na.omit(Alerta_Combustion)) else "Sin Datos",
-          .groups = "drop"
-        ) %>%
-        mutate(
-          FECHA_ULT_I = if_else(is.infinite(FECHA_ULT_I), as.Date(NA), as.Date(FECHA_ULT_I)),
-          RIESGO      = coalesce(RIESGO, "BAJO"),
-          COL         = coalesce(COL,    "#7f8c8d"),
-          COD_HDA_KEY = cod_hda_key
-        )
-      
-      # Reconstruir DATOS_OFICIALES
-      DATOS_OFICIALES <<- DATOS_ESPACIALES_BASE %>%
-        left_join(DB_RIESGO, by = "COD_HDA_KEY") %>%
-        mutate(
-          TOTAL_HISTORICO = coalesce(TOTAL_HISTORICO, 0),
-          N_EVENTOS = coalesce(N_EVENTOS, 0),
-          FECHA_ULT_I = as.Date(FECHA_ULT_I, origin = "1970-01-01"),
-          SAT_FUEGO   = coalesce(SAT_FUEGO, FALSE),
-          GOES_FUEGO  = coalesce(GOES_FUEGO, FALSE),
-          ESTADO_GOES = coalesce(ESTADO_GOES, "Normal"),
-          ESTADO_BIOMASA = coalesce(ESTADO_BIOMASA, "Sin Datos"),
-          RIESGO      = coalesce(RIESGO, "BAJO"),
-          COL         = coalesce(COL,    "#27ae60")
-        )
-      
-      # Invalidar trigger reactivo para recargar todo
-      update_trigger(update_trigger() + 1)
-      
-      removeModal()
-      showNotification("¡Telemetría y predicciones actualizadas exitosamente!", type = "message")
-    }, error = function(e) {
-      removeModal()
-      showNotification(paste("Error en la actualización:", e$message), type = "error")
-    })
-  })
 }

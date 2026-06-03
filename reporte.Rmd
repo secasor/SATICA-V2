@@ -111,7 +111,9 @@ if (!inherits(datos_vigilancia, "data.frame") || nrow(datos_vigilancia) == 0) {
       SAT_FUEGO   = coalesce(SAT_FUEGO, FALSE),
       GOES_FUEGO  = coalesce(GOES_FUEGO, FALSE),
       ESTADO_GOES = coalesce(ESTADO_GOES, "Normal"),
-      ESTADO_BIOMASA = coalesce(ESTADO_BIOMASA, "Sin Datos")
+      ESTADO_BIOMASA = coalesce(ESTADO_BIOMASA, "Sin Datos"),
+      RIESGO      = coalesce(RIESGO, "BAJO"),
+      COL         = coalesce(COL,    "#2ecc71")
     )
     
   # 4. Cruzar con visitas

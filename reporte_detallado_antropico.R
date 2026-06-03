@@ -51,17 +51,20 @@ hda_final <- master_geo %>%
 # 3. Top 10 por Rango
 # Formatear el Ingenio para que sea legible
 mapear_ingenio <- function(codigo) {
+  if (is.null(codigo)) return("OTRO")
+  codigo_clean <- toupper(trimws(as.character(codigo)))
   case_when(
-    codigo == "CA" ~ "INCAUCA",
-    codigo == "MY" ~ "MAYAGÜEZ",
-    codigo == "ML" ~ "MARIA LUISA",
-    codigo == "CC" ~ "CENTRAL CASTILLA",
-    codigo == "PR" ~ "PROVIDENCIA",
-    codigo == "MN" ~ "MANUELITA",
-    codigo == "PC" ~ "PICHICHI",
-    codigo == "CB" ~ "LA CABAÑA",
-    codigo == "RP" ~ "RIOPAILA",
-    TRUE ~ codigo
+    is.na(codigo) | codigo_clean %in% c("NA", "", "NULL") ~ "OTRO",
+    codigo_clean == "CA" ~ "INCAUCA",
+    codigo_clean == "MY" ~ "MAYAGÜEZ",
+    codigo_clean == "ML" ~ "MARIA LUISA",
+    codigo_clean == "CC" ~ "CENTRAL CASTILLA",
+    codigo_clean == "PR" ~ "PROVIDENCIA",
+    codigo_clean == "MN" ~ "MANUELITA",
+    codigo_clean == "PC" ~ "PICHICHI",
+    codigo_clean == "CB" ~ "LA CABAÑA",
+    codigo_clean == "RP" ~ "RIOPAILA",
+    TRUE ~ codigo_clean
   )
 }
 

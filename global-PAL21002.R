@@ -1,36 +1,46 @@
-library(shiny)
-library(bs4Dash)
-library(dplyr)
-library(tidyr)
-library(leaflet)
-library(sf)
-library(readxl)
-library(lubridate)
-library(DT)
-library(shinyWidgets)
-library(stringr)
-library(janitor)
-library(stringi)
+# =========================================================================
+# ⚡ SATICA V2.0 — CARGA OPTIMIZADA (FAST BOOT)
+# =========================================================================
+# Solo se cargan las librerías ESENCIALES para el arranque del dashboard.
+# Las librerías secundarias se cargan bajo demanda (lazy loading).
+
 if (file.exists("instalar_dependencias.R")) {
   source("instalar_dependencias.R")
 }
-library(lwgeom)
-library(readr)
-library(rmarkdown)
-library(openxlsx)
+
+# --- Librerías esenciales (necesarias para renderizar la UI) ---
+library(shiny)
+library(bs4Dash)
+library(dplyr)
+library(leaflet)
+library(sf)
+library(DT)
+library(shinyWidgets)
+library(stringr)
+
+# --- Librerías diferidas: se cargan solo cuando se necesitan ---
+# tidyr       → en server.R (historial)
+# readxl      → ya no se usa en vivo (purgada en blindaje)
+# lubridate   → en server.R (historial, analítica)
+# janitor     → en server.R (lectura de visitas)
+# stringi     → en global.R solo si se necesita reconstruir cache
+# lwgeom      → en global.R solo si se necesita reconstruir cache
+# readr       → diferida
+# rmarkdown   → en server.R (solo al generar reportes)
+# openxlsx    → en server.R (solo al exportar Excel)
 
 # =========================================================================
-# 🔄 DETECCIÓN DE ENTORNO Y SMART SYNC — ACTUALIZACIÓN AUTOMÁTICA
+# 🔄 SMART SYNC — DIFERIDO (NO BLOQUEANTE)
 # =========================================================================
-# Detectamos si se ejecuta en la nube (ShinyApps, Hugging Face Spaces o Docker)
-.ON_CLOUD <- Sys.getenv('ON_CLOUD') == "true" || Sys.getenv('SHINYAPPS_ACCOUNT') != "" || Sys.getenv('SHINY_PORT') != ""
-
+# La sincronización satelital ya NO bloquea el arranque del dashboard.
+# Solo se verifica si los datos necesitan actualización. La sincronización
+# real se ejecuta DESPUÉS de que el dashboard se renderice (en server.R).
 .SMART_SYNC_UMBRAL_MIN <- 30  
 .RDS_PATH <- "data_master/SATICA_MASTER_v2.2.rds"
 
 .datos_desactualizados <- function() {
   if (!file.exists(.RDS_PATH)) {
-    message("📂 Smart Sync: No existe el archivo maestro. Iniciando creación...")
+    message("📂 Smart Sync: No existe el archivo maestro.")
     return(TRUE)
   }
   mins_transcurridos <- as.numeric(difftime(Sys.time(),
@@ -48,43 +58,24 @@ library(openxlsx)
   }, error = function(e) FALSE)
 }
 
-if (.ON_CLOUD) {
-  message("🌐 [ENTORNO NUBE] Detectado. Se omiten descargas y cruces espaciales pesados al inicio.")
-  message("📡 SATICA consumirá la base maestra de datos y alertas en vivo pre-calculadas en GitHub Pages.")
-} else {
-  # --- SMART SYNC LOCAL (PARA DESARROLLADOR) ---
-  if (!file.exists(.RDS_PATH)) {
-    if (.hay_internet()) {
-      message("🔄 Smart Sync: Datos desactualizados. Iniciando sincronización satelital...")
-      message("  🛰️  [1/2] Consultando NASA FIRMS (VIIRS 375m + MODIS)...")
-      tryCatch({
-        source("R/api_nasa_firms.R")
-        message("  ✅ NASA FIRMS: Telemetría actualizada.")
-      }, error = function(e) {
-        message("  ⚠️  NASA FIRMS sin datos (puede ser que el área esté limpia): ", e$message)
-      })
-      
-      message("  ⚙️  [2/2] Ejecutando Motor de Consolidación y Predicción...")
-      tryCatch({
-        source("satica_engine.R")
-        message("  ✅ Motor SATICA: Base maestra actualizada.")
-      }, error = function(e) {
-        message("  ❌ Error en Motor SATICA: ", e$message)
-        message("  ℹ️  Se continuará con los datos del ciclo anterior.")
-      })
-      
-      message("✅ Smart Sync completado. Cargando Dashboard...")
-    } else {
-      message("📡 Smart Sync: Sin conexión a internet detectada.")
-      if (file.exists(.RDS_PATH)) {
-        message("⚠️  MODO OFFLINE: Cargando últimos datos disponibles.")
-      } else {
-        stop("❌ Sin internet y sin datos en caché. Conecte y reinicie la App.")
-      }
-    }
+# --- DECISIÓN RÁPIDA: ¿necesita sync? ---
+if (!file.exists(.RDS_PATH)) {
+  # CASO CRÍTICO: No hay datos en absoluto → sync obligatorio bloqueante
+  message("⚠️ PRIMER ARRANQUE: Sincronización obligatoria (no hay datos previos)...")
+  if (.hay_internet()) {
+    tryCatch({ source("R/api_nasa_firms.R") }, error = function(e) message("⚠️ FIRMS: ", e$message))
+    tryCatch({ source("satica_engine.R") }, error = function(e) stop("❌ Error fatal en Motor: ", e$message))
   } else {
-    message("✅ Smart Sync: Base maestra local disponible. Cargando Dashboard...")
+    stop("❌ Sin internet y sin datos en caché. Conecte y reinicie.")
   }
+  .SATICA_NEEDS_SYNC <- FALSE
+} else if (.datos_desactualizados()) {
+  # Datos existentes pero viejos → Marcar para sync diferido (post-arranque)
+  message("📡 Smart Sync: Datos requieren actualización. Se sincronizará en segundo plano...")
+  .SATICA_NEEDS_SYNC <- TRUE
+} else {
+  message("✅ Smart Sync: Datos actualizados (< 30 min). Cargando Dashboard...")
+  .SATICA_NEEDS_SYNC <- FALSE
 }
 
 # -------------------------------------------------------------------------
@@ -109,24 +100,10 @@ mapear_ingenio <- function(codigo) {
   )
 }
 
-# --- FUNCIONES DE CARGA HÍBRIDA PARA OPTIMIZACIÓN EN LA NUBE ---
-cargar_rds_hibrido <- function(local_path, url_path) {
-  if (file.exists(local_path)) {
-    message("⚡ Carga local rápida (Caché): ", local_path)
-    res <- tryCatch(readRDS(local_path), error = function(e) NULL)
-    if (!is.null(res)) return(res)
-  }
-  message("🌐 Descargando desde internet: ", url_path)
-  readRDS(url(url_path))
-}
-
 # --- 2. CARGA PRINCIPAL: GEOMETRÍA + DATOS MAESTROS ---
 tryCatch({
   
-  master_rds <- cargar_rds_hibrido(
-    "data_master/SATICA_MASTER_v2.2.rds",
-    "https://secasor.github.io/SATICA-V2/data_master/SATICA_MASTER_v2.2.rds"
-  )
+  master_rds <- readRDS("data_master/SATICA_MASTER_v2.2.rds")
   
   formatear_tiempo_g <- function(dias) {
     if (is.na(dias) || dias == 0) return("Sin Historial")
@@ -171,23 +148,9 @@ tryCatch({
   if (!dir.exists("data_estatica")) dir.create("data_estatica")
   
   if (file.exists(cache_geo_path) && file.exists(cache_rest_path)) {
-    message("⚡ CACHE LOCAL ENCONTRADO: Cargando Base Geoespacial Estática...")
+    message("⚡ CACHE: Cargando Base Geoespacial Estática...")
     DATOS_ESPACIALES_BASE <- readRDS(cache_geo_path)
     load(cache_rest_path, envir = .GlobalEnv)
-  } else if (.ON_CLOUD) {
-    message("🌐 CLOUD CACHE: Descargando Base Geoespacial Estática desde Portal de GitHub Pages...")
-    DATOS_ESPACIALES_BASE <- readRDS(url("https://secasor.github.io/SATICA-V2/data_estatica/GEO_CACHE_SATICA.rds"))
-    
-    # Cargar archivo .RData desde la URL descargándolo a un archivo temporal
-    temp_rest <- tempfile(fileext = ".RData")
-    tryCatch({
-      download.file("https://secasor.github.io/SATICA-V2/data_estatica/REST_CACHE_SATICA.RData", temp_rest, mode = "wb", quiet = TRUE)
-      load(temp_rest, envir = .GlobalEnv)
-    }, error = function(e) {
-      message("⚠️ Error al descargar REST_CACHE_SATICA.RData: ", e$message)
-    }, finally = {
-      if (file.exists(temp_rest)) unlink(temp_rest)
-    })
   } else {
     message("⏳ CACHE NO ENCONTRADO: Generando Base Geoespacial (Esto tomará 1-2 minutos)...")
     
@@ -323,6 +286,10 @@ tryCatch({
     message("✅ CACHE CREADO Y GUARDADO.")
   }
 
+  # --- CACHÉ DE CENTROIDES: Evitar recálculo en cada sesión ---
+  cache_centroides_path <- "data_estatica/CENTROIDES_CACHE.rds"
+  .CENTROIDES_PRECALCULADOS <- NULL
+
   # --- CRUCE EN VIVO: DATOS_OFICIALES = GEOMETRÍA ESTÁTICA + MASTER_RDS SATELITAL ---
   DATOS_OFICIALES <- DATOS_ESPACIALES_BASE %>%
     left_join(DB_RIESGO, by = "COD_HDA_KEY") %>%
@@ -340,39 +307,41 @@ tryCatch({
 
   message("✅ PROCESO GLOBAL LISTO: Haciendas + Sensores Satelitales Acoplados.")
   message("🔢 Total Haciendas Cargadas: ", nrow(DATOS_OFICIALES))
+
+  # --- Pre-calcular centroides y cachearlos ---
+  tryCatch({
+    if (file.exists(cache_centroides_path)) {
+      .CENTROIDES_PRECALCULADOS <- readRDS(cache_centroides_path)
+      # Verificar que el caché tiene la misma cantidad de filas
+      if (nrow(.CENTROIDES_PRECALCULADOS) != nrow(DATOS_OFICIALES)) {
+        message("⚡ CACHE CENTROIDES: Tamaño inconsistente. Regenerando...")
+        .CENTROIDES_PRECALCULADOS <- NULL
+      }
+    }
+    if (is.null(.CENTROIDES_PRECALCULADOS)) {
+      message("⚡ Calculando centroides (una sola vez)...")
+      centros_tmp <- suppressWarnings(st_point_on_surface(DATOS_OFICIALES))
+      coords_tmp <- as.data.frame(st_coordinates(centros_tmp))
+      .CENTROIDES_PRECALCULADOS <- coords_tmp
+      saveRDS(.CENTROIDES_PRECALCULADOS, cache_centroides_path)
+      message("  ✅ Centroides cacheados para futuros arranques.")
+    }
+  }, error = function(e) {
+    message("⚠️ Error pre-calculando centroides: ", e$message)
+  })
   
   # --- CARGA DE HACIENDAS SIN GEORREF ---
   RUTA_PUNTO_CIEGO <- "resultados_diagnostico/punto_ciego_suroriente.csv"
   RUTA_COORDS      <- "sin_georref_coords.csv"
   
-  # Carga híbrida inteligente para Punto Ciego
   if (file.exists(RUTA_PUNTO_CIEGO)) {
-    message("⚡ Carga local rápida: ", RUTA_PUNTO_CIEGO)
-    sin_georref_base <- read.csv(RUTA_PUNTO_CIEGO, stringsAsFactors = FALSE, encoding = "UTF-8") %>%
+    sin_georref_base <- read.csv(RUTA_PUNTO_CIEGO,
+                                 stringsAsFactors = FALSE, encoding = "UTF-8") %>%
       mutate(
         COD_HDA_8       = toupper(trimws(COD_HDA_8)),
         Municipio_Excel = toupper(trimws(coalesce(Municipio_Excel, "SIN DATO"))),
         Correg_Excel    = toupper(trimws(coalesce(Correg_Excel,    "SIN DATO")))
       )
-  } else if (.ON_CLOUD) {
-    message("🌐 Descargando Punto Ciego desde GitHub Pages...")
-    sin_georref_base <- tryCatch({
-      read.csv(url("https://secasor.github.io/SATICA-V2/resultados_diagnostico/punto_ciego_suroriente.csv"),
-               stringsAsFactors = FALSE, encoding = "UTF-8") %>%
-        mutate(
-          COD_HDA_8       = toupper(trimws(COD_HDA_8)),
-          Municipio_Excel = toupper(trimws(coalesce(Municipio_Excel, "SIN DATO"))),
-          Correg_Excel    = toupper(trimws(coalesce(Correg_Excel,    "SIN DATO")))
-        )
-    }, error = function(e) {
-      data.frame(
-        COD_HDA_8 = character(), Nombre_Reporte = character(),
-        Ingenio = character(), Municipio_Excel = character(),
-        Correg_Excel = character(), n_registros = integer(),
-        n_suertes = integer(), Prioridad = character(),
-        stringsAsFactors = FALSE
-      )
-    })
   } else {
     sin_georref_base <- data.frame(
       COD_HDA_8 = character(), Nombre_Reporte = character(),
@@ -383,27 +352,10 @@ tryCatch({
     )
   }
   
-  # Carga híbrida inteligente para Coordenadas Manuales
   if (file.exists(RUTA_COORDS)) {
-    message("⚡ Carga local rápida: ", RUTA_COORDS)
-    coords_manual <- read.csv(RUTA_COORDS, stringsAsFactors = FALSE, encoding = "UTF-8") %>%
+    coords_manual <- read.csv(RUTA_COORDS,
+                              stringsAsFactors = FALSE, encoding = "UTF-8") %>%
       mutate(COD_HDA_8 = toupper(trimws(COD_HDA_8)))
-  } else if (.ON_CLOUD) {
-    message("🌐 Descargando Coordenadas Manuales desde GitHub Pages...")
-    coords_manual <- tryCatch({
-      read.csv(url("https://secasor.github.io/SATICA-V2/sin_georref_coords.csv"),
-               stringsAsFactors = FALSE, encoding = "UTF-8") %>%
-        mutate(COD_HDA_8 = toupper(trimws(COD_HDA_8)))
-    }, error = function(e) {
-      data.frame(
-        COD_HDA_8     = sin_georref_base$COD_HDA_8,
-        LAT           = NA_real_,
-        LON           = NA_real_,
-        Notas         = NA_character_,
-        Fecha_Georref = NA_character_,
-        stringsAsFactors = FALSE
-      )
-    })
   } else {
     coords_manual <- data.frame(
       COD_HDA_8     = sin_georref_base$COD_HDA_8,
