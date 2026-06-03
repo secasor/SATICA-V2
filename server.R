@@ -1125,7 +1125,8 @@ server <- function(input, output, session) {
           ESTADO_BIOMASA = coalesce(ESTADO_BIOMASA, "Sin Datos"),
           RIESGO      = coalesce(RIESGO, "BAJO"),
           COL         = coalesce(COL,    "#27ae60")
-        )
+        ) %>%
+        filter(INGENIO_FULL != "OTRO")
       
       # Invalidar trigger reactivo para recargar todo
       update_trigger(update_trigger() + 1)

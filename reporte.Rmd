@@ -114,7 +114,8 @@ if (!inherits(datos_vigilancia, "data.frame") || nrow(datos_vigilancia) == 0) {
       ESTADO_BIOMASA = coalesce(ESTADO_BIOMASA, "Sin Datos"),
       RIESGO      = coalesce(RIESGO, "BAJO"),
       COL         = coalesce(COL,    "#2ecc71")
-    )
+    ) %>%
+    filter(INGENIO_FULL != "OTRO")
     
   # 4. Cruzar con visitas
   ruta_csv <- "visitas_cvc.csv"
@@ -231,13 +232,13 @@ if(total_inminentes > 0) {
 
 # Gráfica de Barras Oficial
 resumen_data <- datos_vigilancia %>%
-  mutate(RIESGO = factor(RIESGO, levels = c("CRITICO", "ALTO", "OBSERVACION", "BAJO")))
+  mutate(RIESGO = factor(RIESGO, levels = c("CRITICO", "ALTO", "OBSERVACION", "BAJO", "MITIGADO")))
 
 if(nrow(resumen_data) > 0) {
   grafico_resumen <- ggplot(resumen_data, aes(x = RIESGO, fill = RIESGO)) +
     geom_bar(width = 0.7, color = "black", alpha = 0.9) +
     scale_fill_manual(
-      values = c("CRITICO"="#CC0000", "ALTO"="#FF8C00", "OBSERVACION"="#F1C40F", "BAJO"="#2ECC71"), 
+      values = c("CRITICO"="#CC0000", "ALTO"="#FF8C00", "OBSERVACION"="#F1C40F", "BAJO"="#2ECC71", "MITIGADO"="#2ECC71"), 
       drop = FALSE
     ) +
     scale_x_discrete(drop = FALSE) +
@@ -259,7 +260,7 @@ if(nrow(resumen_data) > 0) {
   resumen_tab <- resumen_data %>%
     group_by(RIESGO) %>%
     summarise(Cantidad = n(), .groups = 'drop') %>%
-    arrange(match(RIESGO, c("CRITICO", "ALTO", "OBSERVACION", "BAJO")))
+    arrange(match(RIESGO, c("CRITICO", "ALTO", "OBSERVACION", "BAJO", "MITIGADO")))
 
   cat(as.character(
     kable(resumen_tab, col.names = c("Nivel de Riesgo", "N° de Haciendas")) %>%

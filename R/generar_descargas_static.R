@@ -81,7 +81,7 @@ DB_RIESGO <- master_rds %>%
     HDA_NOM         = first(na.omit(hda_nombre)),
     MUN_VAL         = first(na.omit(municipio)),
     CORREG_VAL      = first(na.omit(corregimiento)),
-    INGENIO_VAL     = first(na.omit(mapear_ingenio(ing))),
+    INGENIO_VAL     = first(na.omit(mapear_ingenio(substr(cod_hda_key, 1, 2)))),
     LAT_VAL         = mean(as.numeric(lat), na.rm = TRUE),
     LON_VAL         = mean(as.numeric(lon), na.rm = TRUE),
     .groups = "drop"
@@ -139,7 +139,8 @@ df_base <- DB_RIESGO %>%
       TRUE ~ ESTADO_CONTROL
     ),
     PESO_RIESGO = case_when(RIESGO == "CRITICO" ~ 1, RIESGO == "ALTO" ~ 2, RIESGO == "OBSERVACION" ~ 3, TRUE ~ 4)
-  )
+  ) %>%
+  filter(INGENIO_VAL != "OTRO" & !is.na(LAT_VAL) & !is.na(LON_VAL))
 
 # ==============================================================================
 # A. PLANTILLA DE VISITAS (CSV)
@@ -208,6 +209,12 @@ if (file.exists(ruta_visitas_master)) {
         df_visitas_old[[col]] <- ""
       }
     }
+    # Filtrar registros históricos "OTRO" o sin georreferenciación
+    df_visitas_old <- df_visitas_old %>%
+      filter(
+        !is.na(coordenadas) & trimws(coordenadas) != "" & tolower(trimws(coordenadas)) != "sin coordenadas",
+        !is.na(ingenio_full) & tolower(trimws(ingenio_full)) != "otro"
+      )
   } else {
     df_visitas_old <- data.frame(
       cod_hda_key = character(), hda_label = character(), ingenio_full = character(),
@@ -258,6 +265,10 @@ df_recs_actual <- df_base %>%
     fecha_visita = "",
     radicado = "",
     boletin_n = num_boletin_str
+  ) %>%
+  filter(
+    coordenadas != "Sin Coordenadas",
+    ingenio_full != "OTRO"
   )
 
 # Mezclar inteligentemente preservando datos del usuario

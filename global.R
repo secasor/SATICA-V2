@@ -336,7 +336,8 @@ tryCatch({
       ESTADO_BIOMASA = coalesce(ESTADO_BIOMASA, "Sin Datos"),
       RIESGO      = coalesce(RIESGO, "BAJO"),
       COL         = coalesce(COL,    "#27ae60")
-    )
+    ) %>%
+    filter(INGENIO_FULL != "OTRO")
 
   message("✅ PROCESO GLOBAL LISTO: Haciendas + Sensores Satelitales Acoplados.")
   message("🔢 Total Haciendas Cargadas: ", nrow(DATOS_OFICIALES))
@@ -500,7 +501,8 @@ tryCatch({
       DATOS_ANCLA[[col]] <- NA
     }
     
-    DATOS_OFICIALES <- bind_rows(DATOS_OFICIALES, DATOS_ANCLA)
+    DATOS_OFICIALES <- bind_rows(DATOS_OFICIALES, DATOS_ANCLA) %>%
+      filter(INGENIO_FULL != "OTRO")
     SIN_GEORREF <- SIN_GEORREF %>% filter(Tiene_Coords == FALSE)
     
     message(paste("\U0001f4cd Ancla Operativa:", nrow(DATOS_ANCLA),
