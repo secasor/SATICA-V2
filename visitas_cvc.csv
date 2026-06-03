@@ -1,2 +1,205 @@
-cod_hda_key,fecha_visita,radicado
-CA_011037,2025-09-02,2025-RAD-12345
+"cod_hda_key","fecha_visita","radicado","hda_label","ingenio_full","municipio","corregimiento","coordenadas","categoria_alerta","boletin_n"
+"CA_011037","2025-09-02","2025-RAD-12345","","","","","","",NA
+"CA_010014","","","MONTEPALO_010014","INCAUCA","Florida","Chococito","3.2903, -76.2621","Alerta Inminente",7
+"CA_010074","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_010139","","","EL REFUGIO 1, 2 Y 3_010139","INCAUCA","Florida","Chococito","3.287, -76.2905","Alerta Inminente + Focalización Operativa",7
+"CA_010141","","","PERODIAS  YOLANDA_010141","INCAUCA","Florida","El Remolino","3.304, -76.2599","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"CA_010226","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_010252","","","PERODIAS DORIS_010252","INCAUCA","Florida","El Remolino","3.3012, -76.2539","Alerta Inminente + Focalización Operativa",7
+"CA_010273","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_010356","","","LA PALOMERA_010356","INCAUCA","Candelaria","Cabuyal","3.3037, -76.3255","Alerta Inminente",7
+"CA_010385","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_010451","","","LA MARAVILLOSA_010451","INCAUCA","Florida","Tarragona","3.2856, -76.3198","Alerta Inminente",7
+"CA_010545","","","ARANJUEZ 2_010545","INCAUCA","Candelaria","El Tiple","3.3364, -76.4046","Alerta Inminente",7
+"CA_010789","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"CA_010798","","","MONTECARLO_010798","INCAUCA","Florida","Chococito","3.2936, -76.3028","Alerta Inminente",7
+"CA_010851","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_010923","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_011645","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa",7
+"CA_011852","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_011948","","","SAN PABLO TUMACO_011948","INCAUCA","Palmira","Guanabanal","3.4894, -76.433","Alerta Inminente + Focalización Operativa",7
+"CA_012241","","","MADRONAL  PALENQUE_012241","INCAUCA","Candelaria","Cabuyal","3.3329, -76.383","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"CA_012447","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_012512","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_012519","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_012625","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_012642","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CA_012692","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CB_000007","","","PALACE_007","LA CABAÑA","Florida","Chococito","3.2917, -76.2877","Alerta Inminente",7
+"CB_000010","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CB_000114","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CB_000142","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CB_000751","","","RIO FRAYLE_751","LA CABAÑA","Florida","El Remolino","3.3291, -76.2585","Alerta Inminente + Focalización Operativa",7
+"CB_000752","","","LA INDUSTRIA_752","LA CABAÑA","Florida","San Antonio de los Caballeros","3.3401, -76.2644","Alerta Inminente",7
+"CB_000849","","","ACUARIO_849","LA CABAÑA","Florida","La Diana","3.3592, -76.2232","Alerta Inminente",7
+"CB_000852","","","PERGOLA I_852","LA CABAÑA","Florida","La Diana","3.3567, -76.2385","Alerta Inminente",7
+"CB_000853","","","VALLECITO_853","LA CABAÑA","Pradera","Bolivar","3.3673, -76.2106","Alerta Inminente",7
+"CB_000A68","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CB_000A98","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CB_000B02","","","LA LINDA_B02","LA CABAÑA","Palmira","Aguaclara","3.4781, -76.2916","Alerta Inminente",7
+"CB_000B04","","","PAPAYALITO_B04","LA CABAÑA","Palmira","Aguaclara","3.4975, -76.2753","Alerta Inminente",7
+"CB_000B07","","","EL TABLON ALTO_B07","LA CABAÑA","Pradera","Potrerito","3.4203, -76.2162","Alerta Inminente",7
+"CB_000F93","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000110","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000112","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000135","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000137","","","MANANTIAL_2137","CENTRAL CASTILLA","Pradera","La Floresta","3.3987, -76.2327","Alerta Inminente + Focalización Operativa",7
+"CC_000138","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa",7
+"CC_000260","","","PORVENIR LOPEZ_0260","CENTRAL CASTILLA","Pradera","Bolo - Hartonal","3.4285, -76.2516","Alerta Inminente + Focalización Operativa",7
+"CC_000269","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000283","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000291","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000314","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000413","","","RETIRO_0413","CENTRAL CASTILLA","Palmira","Guanabanal","3.4714, -76.4158","Alerta Inminente",7
+"CC_000445","","","ATENAS_0445","CENTRAL CASTILLA","Florida","La Diana","3.3452, -76.2339","Alerta Inminente",7
+"CC_000447","","","ATENAS 1_0447","CENTRAL CASTILLA","Florida","La Diana","3.3436, -76.2462","Alerta Inminente + Focalización Operativa",7
+"CC_000448","","","MARGARITAS_0448","CENTRAL CASTILLA","Candelaria","San Joaquin","3.3851, -76.4176","Alerta Inminente + Focalización Operativa",7
+"CC_000453","","","IND. DORIS_0453","CENTRAL CASTILLA","Florida","San Antonio de los Caballeros","3.3614, -76.2513","Alerta Inminente + Focalización Operativa",7
+"CC_000466","","","LOS RANCHOS_0466","CENTRAL CASTILLA","Florida","La Diana","3.3461, -76.2172","Alerta Inminente",7
+"CC_000486","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000487","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000493","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"CC_000503","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"CC_000546","","","LUCERNA OSCAR_0546","CENTRAL CASTILLA","Florida","El Remolino","3.3173, -76.2721","Alerta Inminente",7
+"CC_000570","","","EL CUBO 1_0570","CENTRAL CASTILLA","Pradera","La Granja","3.378, -76.2547","Alerta Inminente + Focalización Operativa",7
+"CC_000574","","","TIERRA MEDIA_0574","CENTRAL CASTILLA","Florida","El Remolino","3.3064, -76.2729","Alerta Inminente",7
+"CC_000682","","","REGINA 3_0682","CENTRAL CASTILLA","Candelaria","La Regina","3.3658, -76.3179","Alerta Inminente",7
+"CC_000684","","","BALSILLA_0684","CENTRAL CASTILLA","Florida","El Remolino","3.3162, -76.2508","Alerta Inminente",7
+"CC_000687","","","SAN RAFAEL H._0687","CENTRAL CASTILLA","Florida","El Libano","3.3027, -76.2272","Alerta Inminente",7
+"CC_000703","","","TIERRA GRATA_0703","CENTRAL CASTILLA","Florida","El Remolino","3.3063, -76.2699","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"CC_000724","","","EL CUBO_0724","CENTRAL CASTILLA","Pradera","La Floresta","3.3915, -76.2418","Alerta Inminente + Focalización Operativa",7
+"CC_000732","","","REFUGIO ATENAS_0732","CENTRAL CASTILLA","Florida","La Diana","3.3479, -76.2244","Alerta Inminente",7
+"CC_000747","","","EL COFRE_0747","CENTRAL CASTILLA","Pradera","La Granja","3.3825, -76.2621","Alerta Inminente + Focalización Operativa",7
+"CC_000768","","","PISAMOS_0768","CENTRAL CASTILLA","Florida","Chococito","3.2973, -76.2359","Alerta Inminente",7
+"CC_000780","","","BELGICA_0780","CENTRAL CASTILLA","Florida","El Remolino","3.2986, -76.2879","Alerta Inminente",7
+"CC_000784","","","REY 2_0784","CENTRAL CASTILLA","Florida","La Diana","3.324, -76.2109","Alerta Inminente",7
+"ML_000203","","","LA SEXTA_000203","MARIA LUISA","Candelaria","Madrevieja","3.4341, -76.3429","Alerta Inminente",7
+"ML_000206","","","LA GUACA II_000206","MARIA LUISA","Candelaria","Arenal","3.4089, -76.3665","Alerta Inminente",7
+"ML_000504","","","LA ISLA_000504","MARIA LUISA","Florida","El Remolino","3.3305, -76.2903","Alerta Inminente",7
+"ML_000505","","","MOSCU_000505","MARIA LUISA","Florida","El Remolino","3.3514, -76.3033","Alerta Inminente",7
+"ML_000506","","","REMOLINOS_000506","MARIA LUISA","Florida","El Remolino","3.3238, -76.3035","Alerta Inminente",7
+"ML_000509","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MN_000005","","","ROSARIO_005","MANUELITA","Palmira","Amaime","3.5884, -76.2981","Alerta Inminente",7
+"MN_000008","","","CASCAJAL_008","MANUELITA","Palmira","Zamorano","3.5653, -76.3126","Alerta Inminente",7
+"MN_000010","","","OLGA_010","MANUELITA","Palmira","Rozo","3.6139, -76.3587","Alerta Inminente + Focalización Operativa",7
+"MN_000060","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MN_000074","","","CASABCA/DOLORES_074","MANUELITA","Palmira","Juanchito","3.4853, -76.4658","Alerta Inminente",7
+"MN_000118","","","DUNKERQUE_118","MANUELITA","Candelaria","El Tiple","3.359, -76.4556","Alerta Inminente",7
+"MN_000125","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MN_000133","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MN_000137","","","LOMITAS_137","MANUELITA","Palmira","Coronado","3.5587, -76.3064","Alerta Inminente",7
+"MN_000305","","","REFLEJO_305","MANUELITA","El Cerrito","San Antonio","3.6715, -76.3745","Focalización Operativa",7
+"MN_000341","","","BARRANCAS  MANUEL FELIPE_341","MANUELITA","Palmira","Barrancas","3.5449, -76.2324","Alerta Inminente",7
+"MN_000346","","","SOCORRO 3_346","MANUELITA","Palmira","Coronado","3.5523, -76.334","Alerta Inminente",7
+"MN_000347","","","SANTA ROSA_347","MANUELITA","Palmira","Tienda Nueva","3.586, -76.2489","Alerta Inminente + Focalización Operativa",7
+"MN_000359","","","JOSEPILLA_359","MANUELITA","Palmira","Obando","3.5587, -76.4016","Alerta Inminente + Focalización Operativa",7
+"MN_000362","","","ORIENTE_362","MANUELITA","Palmira","Guayabal","3.5584, -76.2593","Alerta Inminente + Focalización Operativa",7
+"MN_000367","","","GERMANIA_367","MANUELITA","Palmira","Barrancas","3.5338, -76.2394","Alerta Inminente + Focalización Operativa",7
+"MN_000376","","","DOS CEIBAS_376","MANUELITA","Palmira","Palmaseca","3.5027, -76.4412","Alerta Inminente",7
+"MN_000422","","","SAN ANTONIO REYESNELSON_422","MANUELITA","Palmira","La Herradura","3.5427, -76.3363","Alerta Inminente",7
+"MN_000443","","","SANTA MARTHA SARDI_443","MANUELITA","Candelaria","El Lauro","3.438, -76.3892","Alerta Inminente",7
+"MN_000460","","","EL ARADO_460","MANUELITA","Pradera","La Floresta","3.4133, -76.2491","Alerta Inminente + Focalización Operativa",7
+"MN_000519","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MN_000741","","","SANTA CLARA_741","MANUELITA","Candelaria","Madrevieja","3.4644, -76.2906","Alerta Inminente",7
+"MN_000796","","","CONCORDIA_796","MANUELITA","Pradera","La Floresta","3.4003, -76.2457","Alerta Inminente + Focalización Operativa",7
+"MY_000004","","","La Magnolia_4","MAYAGÜEZ","Candelaria","El Tiple","3.3327, -76.3929","Alerta Inminente",7
+"MY_000010","","","MayagA?ez_10","MAYAGÜEZ","Candelaria","Madrevieja","3.3991, -76.3219","Alerta Inminente",7
+"MY_000014","","","Zainera_14","MAYAGÜEZ","Candelaria","Madrevieja","3.4186, -76.3142","Alerta Inminente + Focalización Operativa",7
+"MY_000017","","","La Colombiana_17","MAYAGÜEZ","Candelaria","Arenal","3.3949, -76.3407","Alerta Inminente",7
+"MY_000029","","","Alvaro Reyes_29","MAYAGÜEZ","Candelaria","Madrevieja","3.4355, -76.3477","Alerta Inminente + Focalización Operativa",7
+"MY_000032","","","Arauca_32","MAYAGÜEZ","Florida","Tarragona","3.2941, -76.3382","Alerta Inminente + Focalización Operativa",7
+"MY_000048","","","El Arenal_48","MAYAGÜEZ","Candelaria","Arenal","3.39, -76.355","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"MY_000078","","","Caideal_78","MAYAGÜEZ","Candelaria","Madrevieja","3.4081, -76.3392","Alerta Inminente",7
+"MY_000088","","","El Palmar_88","MAYAGÜEZ","Candelaria","El Lauro","3.4734, -76.4163","Alerta Inminente",7
+"MY_000094","","","Maloya_94","MAYAGÜEZ","Candelaria","Arenal","3.3967, -76.3504","Alerta Inminente + Focalización Operativa",7
+"MY_000103","","","Villa Patricia_103","MAYAGÜEZ","Pradera","La Tupia","3.4012, -76.3115","Alerta Inminente + Focalización Operativa",7
+"MY_000104","","","El Rhin_104","MAYAGÜEZ","Florida","San Antonio de los Caballeros","3.3463, -76.2991","Alerta Inminente",7
+"MY_000112","","","El Convenio_112","MAYAGÜEZ","Palmira","Bolo - Alizal","3.491, -76.3303","Alerta Inminente",7
+"MY_000114","","","Cantarrana_114","MAYAGÜEZ","Palmira","Caucaseco","3.4694, -76.4513","Alerta Inminente",7
+"MY_000116","","","La Guaira_116","MAYAGÜEZ","Pradera","La Tupia","3.4274, -76.2944","Alerta Inminente + Focalización Operativa",7
+"MY_000121","","","La Troya_121","MAYAGÜEZ","Candelaria","Arenal","3.3917, -76.3601","Alerta Inminente + Focalización Operativa",7
+"MY_000128","","","Santa MarA!a_128","MAYAGÜEZ","Candelaria","El Lauro","3.4338, -76.354","Alerta Inminente",7
+"MY_000133","","","California Bolo_133","MAYAGÜEZ","Palmira","Bolo - San Isidro","3.4688, -76.3412","Alerta Inminente",7
+"MY_000142","","","Rio Fraile (Diego DomA!nguez)_142","MAYAGÜEZ","Candelaria","La Regina","3.3459, -76.3146","Alerta Inminente + Focalización Operativa",7
+"MY_000163","","","La Generala_163","MAYAGÜEZ","Florida","San Antonio de los Caballeros","3.3494, -76.306","Alerta Inminente",7
+"MY_000187","","","Niagara_187","MAYAGÜEZ","Candelaria","San Joaquin","3.3822, -76.427","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"MY_000188","","","El Nilo - Francisco J. GonzA lez_188","MAYAGÜEZ","Candelaria","Villa Gorgona","3.385, -76.3858","Alerta Inminente",7
+"MY_000195","","","Valladolid_195","MAYAGÜEZ","Candelaria","Buchitolo","3.3725, -76.3513","Alerta Inminente",7
+"MY_000211","","","Las Ama?sricas_211","MAYAGÜEZ","Candelaria","Villa Gorgona","3.404, -76.3769","Alerta Inminente + Focalización Operativa",7
+"MY_000242","","","Zainera Muzzulini_242","MAYAGÜEZ","Candelaria","Madrevieja","3.4212, -76.3226","Alerta Inminente",7
+"MY_000272","","","La Chica Gaviria_272","MAYAGÜEZ","Palmira","Caucaseco","3.4878, -76.4506","Alerta Inminente + Focalización Operativa",7
+"MY_000274","","","La Casilda_274","MAYAGÜEZ","Florida","El Pedregal","3.3299, -76.2268","Alerta Inminente + Focalización Operativa",7
+"MY_000302","","","Brisuelas_302","MAYAGÜEZ","El Cerrito","Santa Helena","3.6292, -76.2418","Focalización Operativa",7
+"MY_000303","","","San Josa?s de Nima_303","MAYAGÜEZ","Palmira","Tienda Nueva","3.5781, -76.2246","Alerta Inminente",7
+"MY_000384","","","El Retiro_384","MAYAGÜEZ","Florida","El Remolino","3.305, -76.2805","Alerta Inminente + Focalización Operativa",7
+"MY_000417","","","La Chica Jaramillo_417","MAYAGÜEZ","Palmira","Guanabanal","3.4842, -76.4398","Alerta Inminente",7
+"MY_000444","","","San Marcos_444","MAYAGÜEZ","Candelaria","Cabuyal","3.326, -76.3569","Alerta Inminente",7
+"MY_000448","","","El Carmen_448","MAYAGÜEZ","Florida","La Diana","3.335, -76.2281","Alerta Inminente",7
+"MY_000609","","","El Descanso_609","MAYAGÜEZ","Pradera","Bolo - Hartonal","3.4472, -76.2851","Alerta Inminente + Focalización Operativa",7
+"MY_000696","","","El Tesoro_696","MAYAGÜEZ","Candelaria","Buchitolo","3.3784, -76.3833","Alerta Inminente",7
+"MY_000714","","","Villa Juanis_714","MAYAGÜEZ","Candelaria","Cabuyal","3.3206, -76.3494","Alerta Inminente",7
+"MY_000830","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MY_000A07","","","Villa Fidela_A07","MAYAGÜEZ","Florida","El Remolino","3.311, -76.3048","Alerta Inminente",7
+"MY_000A83","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MY_000B18","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MY_000B31","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MY_000B77","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MY_000B93","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MY_000C18","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MY_000C25","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"MY_000C74","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_001012","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_001037","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_001063","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_001094","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_001220","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_001265","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_001294","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_002017","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_002077","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa",7
+"PC_002281","","","GENOVA_2281","PICHICHI","El Cerrito","San Antonio","3.6731, -76.3879","Focalización Operativa",7
+"PC_002282","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_002283","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_002448","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_002493","","","HERRAGRICOLA_2493","PICHICHI","Palmira","Palmaseca","3.5201, -76.3533","Alerta Inminente + Focalización Operativa",7
+"PC_002497","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_003010","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_003030","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_003041","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_003229","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PC_003296","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080101","","","PROVIDENCIA_080101","PROVIDENCIA","El Cerrito","Santa Helena","3.6313, -76.2744","Focalización Operativa",7
+"PR_080102","","","LA PAZ_080102","PROVIDENCIA","El Cerrito","Santa Helena","3.645, -76.2835","Focalización Operativa",7
+"PR_080104","","","SAMARIA_080104","PROVIDENCIA","El Cerrito","El Placer","3.6182, -76.2884","Focalización Operativa",7
+"PR_080109","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"PR_080111","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"PR_080117","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080121","","","PIEDECHINCHE_080121","PROVIDENCIA","El Cerrito","Santa Helena","3.6231, -76.2196","Focalización Operativa",7
+"PR_080151","","","SAN PABLO AZCARATE_080151","PROVIDENCIA","Palmira","Zamorano","3.5439, -76.2786","Alerta Inminente",7
+"PR_080153","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080167","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080174","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080206","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080211","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080214","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080216","","","LA UNION MOLINA_080216","PROVIDENCIA","El Cerrito","San Antonio","3.659, -76.3621","Focalización Operativa",7
+"PR_080274","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080280","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080281","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa",7
+"PR_080392","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_080405","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa + Top 10 Regional",7
+"PR_080435","","","TURIN_080435","PROVIDENCIA","El Cerrito","San Antonio","3.6692, -76.3664","Focalización Operativa",7
+"PR_080489","","","EL PLACER_080489","PROVIDENCIA","El Cerrito","El Placer","3.6219, -76.2504","Focalización Operativa",7
+"PR_080579","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente + Focalización Operativa",7
+"PR_080655","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_081063","","","JOSEPILLA PALMA_081063","PROVIDENCIA","Palmira","La Herradura","3.5354, -76.4215","Alerta Inminente",7
+"PR_081363","","","ESPERANZA INESA_081363","PROVIDENCIA","Palmira","Guayabal","3.5434, -76.2618","Alerta Inminente",7
+"PR_081369","","","TRANSITO CENTRAL TUMACO_081369","PROVIDENCIA","Palmira","La Herradura","3.5454, -76.3233","Alerta Inminente + Focalización Operativa",7
+"PR_081485","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_082512","","","JOSEPILLA II_082512","PROVIDENCIA","Palmira","Matapalo","3.5462, -76.421","Alerta Inminente + Focalización Operativa",7
+"PR_082524","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_082527","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_082531","","","LA LINDA_082531","PROVIDENCIA","Palmira","Bolo - La Italia","3.4768, -76.3034","Alerta Inminente",7
+"PR_082541","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"PR_082560","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7
+"RP_0C1350","","",NA,"OTRO",NA,NA,"Sin Coordenadas","Alerta Inminente",7

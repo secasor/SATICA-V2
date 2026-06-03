@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <Document id="root_doc">
-<Schema name="file19b36968e616" id="file19b36968e616">
+<Schema name="file19b1780e1206" id="file19b1780e1206">
 	<SimpleField name="NOM_PRED" type="string"></SimpleField>
 	<SimpleField name="INGENIO" type="string"></SimpleField>
 	<SimpleField name="MUN" type="string"></SimpleField>
@@ -17,10 +17,10 @@
     <LineStyle><color>ff0032c8</color><width>1.5</width></LineStyle>
     <PolyStyle><color>d9227ee6</color><fill>1</fill><outline>1</outline></PolyStyle>
   </Style>
-<Folder><name>file19b36968e616</name>
+<Folder><name>file19b1780e1206</name>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">MONTEPALO_010014</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -33,7 +33,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL REFUGIO 1, 2 Y 3_010139</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -46,7 +46,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">PERODIAS  YOLANDA_010141</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -59,7 +59,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">PERODIAS DORIS_010252</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -72,7 +72,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA PALOMERA_010356</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -85,7 +85,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA MARAVILLOSA_010451</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -98,7 +98,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ARANJUEZ 2_010545</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -111,7 +111,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">MONTECARLO_010798</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -124,7 +124,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SAN PABLO TUMACO_011948</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -137,7 +137,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">MADRONAL  PALENQUE_012241</SimpleData>
 		<SimpleData name="INGENIO">INCAUCA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -150,7 +150,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">PALACE_007</SimpleData>
 		<SimpleData name="INGENIO">LA CABAÑA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -163,7 +163,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">RIO FRAYLE_751</SimpleData>
 		<SimpleData name="INGENIO">LA CABAÑA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -176,7 +176,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA INDUSTRIA_752</SimpleData>
 		<SimpleData name="INGENIO">LA CABAÑA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -189,7 +189,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ACUARIO_849</SimpleData>
 		<SimpleData name="INGENIO">LA CABAÑA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -202,7 +202,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">PERGOLA I_852</SimpleData>
 		<SimpleData name="INGENIO">LA CABAÑA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -215,7 +215,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">VALLECITO_853</SimpleData>
 		<SimpleData name="INGENIO">LA CABAÑA</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -228,7 +228,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA LINDA_B02</SimpleData>
 		<SimpleData name="INGENIO">LA CABAÑA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -241,7 +241,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">PAPAYALITO_B04</SimpleData>
 		<SimpleData name="INGENIO">LA CABAÑA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -254,7 +254,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL TABLON ALTO_B07</SimpleData>
 		<SimpleData name="INGENIO">LA CABAÑA</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -267,7 +267,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">MANANTIAL_2137</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -280,7 +280,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">PORVENIR LOPEZ_0260</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -293,7 +293,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">RETIRO_0413</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -306,7 +306,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ATENAS_0445</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -319,7 +319,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ATENAS 1_0447</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -332,7 +332,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">MARGARITAS_0448</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -345,7 +345,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">IND. DORIS_0453</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -358,7 +358,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LOS RANCHOS_0466</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -371,7 +371,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LUCERNA OSCAR_0546</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -384,7 +384,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL CUBO 1_0570</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -397,7 +397,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">TIERRA MEDIA_0574</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -410,7 +410,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">REGINA 3_0682</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -423,7 +423,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">BALSILLA_0684</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -436,7 +436,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SAN RAFAEL H._0687</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -449,7 +449,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">TIERRA GRATA_0703</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -462,7 +462,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL CUBO_0724</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -475,7 +475,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">REFUGIO ATENAS_0732</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -488,7 +488,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL COFRE_0747</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -501,7 +501,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">PISAMOS_0768</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -514,7 +514,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">BELGICA_0780</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -527,7 +527,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">REY 2_0784</SimpleData>
 		<SimpleData name="INGENIO">CENTRAL CASTILLA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -540,7 +540,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA SEXTA_000203</SimpleData>
 		<SimpleData name="INGENIO">MARIA LUISA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -553,7 +553,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA GUACA II_000206</SimpleData>
 		<SimpleData name="INGENIO">MARIA LUISA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -566,7 +566,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA ISLA_000504</SimpleData>
 		<SimpleData name="INGENIO">MARIA LUISA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -579,7 +579,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">MOSCU_000505</SimpleData>
 		<SimpleData name="INGENIO">MARIA LUISA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -592,7 +592,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">REMOLINOS_000506</SimpleData>
 		<SimpleData name="INGENIO">MARIA LUISA</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -605,7 +605,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ROSARIO_005</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -618,7 +618,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">CASCAJAL_008</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -631,7 +631,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">OLGA_010</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -644,7 +644,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">CASABCA/DOLORES_074</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -657,7 +657,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">DUNKERQUE_118</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -670,7 +670,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LOMITAS_137</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -683,7 +683,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">BARRANCAS  MANUEL FELIPE_341</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -696,7 +696,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SOCORRO 3_346</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -709,7 +709,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SANTA ROSA_347</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -722,7 +722,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">JOSEPILLA_359</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -735,7 +735,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ORIENTE_362</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -748,7 +748,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">GERMANIA_367</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -761,7 +761,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">DOS CEIBAS_376</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -774,7 +774,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SAN ANTONIO REYESNELSON_422</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -787,7 +787,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SANTA MARTHA SARDI_443</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -800,7 +800,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL ARADO_460</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -813,7 +813,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SANTA CLARA_741</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -826,7 +826,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">CONCORDIA_796</SimpleData>
 		<SimpleData name="INGENIO">MANUELITA</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -839,7 +839,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA MAGNOLIA_4</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -852,7 +852,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">MAYAGA?EZ_10</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -865,7 +865,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ZAINERA_14</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -878,7 +878,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA COLOMBIANA_17</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -891,7 +891,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ALVARO REYES_29</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -904,7 +904,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ARAUCA_32</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -917,7 +917,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL ARENAL_48</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -930,7 +930,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">CAIDEAL_78</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -943,7 +943,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL PALMAR_88</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -956,7 +956,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">MALOYA_94</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -969,7 +969,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">VILLA PATRICIA_103</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -982,7 +982,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL RHIN_104</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -995,7 +995,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL CONVENIO_112</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1008,7 +1008,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">CANTARRANA_114</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1021,7 +1021,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA GUAIRA_116</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -1034,7 +1034,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA TROYA_121</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1047,7 +1047,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SANTA MARA!A_128</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1060,7 +1060,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">CALIFORNIA BOLO_133</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1073,7 +1073,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">RIO FRAILE (DIEGO DOMA!NGUEZ)_142</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1086,7 +1086,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA GENERALA_163</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -1099,7 +1099,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">NIAGARA_187</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1112,7 +1112,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL NILO - FRANCISCO J. GONZA LEZ_188</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1125,7 +1125,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">VALLADOLID_195</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1138,7 +1138,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LAS AMA?SRICAS_211</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1151,7 +1151,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ZAINERA MUZZULINI_242</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1164,7 +1164,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA CHICA GAVIRIA_272</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1177,7 +1177,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA CASILDA_274</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -1190,20 +1190,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
-		<SimpleData name="NOM_PRED">BRISUELAS_302</SimpleData>
-		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
-		<SimpleData name="MUN">El Cerrito</SimpleData>
-		<SimpleData name="RIESGO_GIS">ALTO</SimpleData>
-		<SimpleData name="TIPO">ALTO</SimpleData>
-		<SimpleData name="FECHA_EST">2026-04-02</SimpleData>
-	</SchemaData></ExtendedData>
-    <styleUrl>#ALTO</styleUrl>
-      <MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>-76.24682913567,3.63081225237607 -76.2468330696707,3.63098970485619 -76.2467758120115,3.63158077704576 -76.2466609925482,3.63186615579958 -76.2464768519721,3.63180751108028 -76.2460904955343,3.6317257957935 -76.2457669308672,3.63162830857552 -76.2452769757655,3.63158974916996 -76.2451514684035,3.63159882741582 -76.2449375604897,3.63165556390932 -76.2445657137327,3.63168762278117 -76.2440189686779,3.63181274453781 -76.2437633866948,3.6317856621766 -76.2434786944202,3.63178837040105 -76.2432475426815,3.63175982882517 -76.2431311793169,3.63176127326072 -76.2429303388588,3.63180287116191 -76.2425679505719,3.6319365401044 -76.2420713975676,3.63206183325039 -76.2415525702373,3.63213330565318 -76.2413560771198,3.63213500720126 -76.241254000403,3.63215230836652 -76.241170746368,3.63219660138977 -76.241006034729,3.63236368138673 -76.2409020376295,3.63243937855628 -76.2407556803567,3.6324933727147 -76.240620532205,3.63249686202011 -76.2405531629734,3.63248148286174 -76.2403549099808,3.63238596441474 -76.2400186839415,3.63218460890314 -76.2396600700013,3.63194655412455 -76.2391362793944,3.63167714830007 -76.2389568699758,3.63155654231836 -76.2388640400941,3.63146690173234 -76.2386142767068,3.63114439771041 -76.2386357092382,3.63091468708014 -76.2387429904489,3.63045727725826 -76.2387374609466,3.63038865262378 -76.238693237416,3.63032733133871 -76.2383997289067,3.63012587707272 -76.2383510906559,3.63011540358843 -76.238295298076,3.63012584760472 -76.2382487660343,3.63015829540618 -76.2382222090441,3.63020028877597 -76.2379195037022,3.63128891061809 -76.2378243936576,3.63123740565813 -76.2376810338884,3.63118576768255 -76.2375422336236,3.63105052192572 -76.2374412528826,3.63090061725783 -76.2372764033375,3.63061581976979 -76.23721799038,3.63046487973506 -76.2370328487382,3.63010032635738 -76.2369565378107,3.62997180227373 -76.2368990866242,3.62990489508565 -76.2367399854666,3.62980299272714 -76.2359817349141,3.62947252193109 -76.235869235431,3.62939181091085 -76.2351641868479,3.6287942886944 -76.2344732346359,3.62816843717935 -76.2338795632058,3.62761966328705 -76.2335902623385,3.62731007775141 -76.233419425994,3.62720158859022 -76.2335572914791,3.62512655690944 -76.236397454317,3.62571777819397 -76.2386637893142,3.62614747526194 -76.2456817742332,3.62755355383157 -76.2469264058443,3.62781576938119 -76.24682913567,3.63081225237607</coordinates></LinearRing></outerBoundaryIs><innerBoundaryIs><LinearRing><coordinates>-76.2366692284618,3.62718954021161 -76.2366140945854,3.62719473500106 -76.2365657106005,3.6272216222389 -76.2365322489605,3.6272656604476 -76.2365193616122,3.62731941120916 -76.2365184421475,3.62744329642885 -76.2365547780073,3.62752299572439 -76.2366006169038,3.62755577142242 -76.2367370220134,3.6275979607689 -76.2368667771696,3.62760941605165 -76.2369426711618,3.62757639550368 -76.2369758997136,3.62753178445062 -76.2370131753722,3.62742379860164 -76.2370124434015,3.62734822305112 -76.2369901908152,3.62730512221791 -76.2369480315636,3.62726920645491 -76.2368531938814,3.62725622567696 -76.2366692284618,3.62718954021161</coordinates></LinearRing></innerBoundaryIs></Polygon></MultiGeometry>
-  </Placemark>
-  <Placemark>
-	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SAN JOSA?S DE NIMA_303</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1216,7 +1203,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL RETIRO_384</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -1229,7 +1216,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA CHICA JARAMILLO_417</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1242,7 +1229,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SAN MARCOS_444</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1255,7 +1242,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL CARMEN_448</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -1268,7 +1255,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL DESCANSO_609</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Pradera</SimpleData>
@@ -1281,7 +1268,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">EL TESORO_696</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1294,7 +1281,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">VILLA JUANIS_714</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Candelaria</SimpleData>
@@ -1307,7 +1294,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">VILLA FIDELA_A07</SimpleData>
 		<SimpleData name="INGENIO">MAYAGÜEZ</SimpleData>
 		<SimpleData name="MUN">Florida</SimpleData>
@@ -1320,7 +1307,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">HERRAGRICOLA_2493</SimpleData>
 		<SimpleData name="INGENIO">PICHICHI</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1333,7 +1320,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">SAN PABLO AZCARATE_080151</SimpleData>
 		<SimpleData name="INGENIO">PROVIDENCIA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1346,7 +1333,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">JOSEPILLA PALMA_081063</SimpleData>
 		<SimpleData name="INGENIO">PROVIDENCIA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1359,7 +1346,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">ESPERANZA INESA_081363</SimpleData>
 		<SimpleData name="INGENIO">PROVIDENCIA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1372,7 +1359,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">TRANSITO CENTRAL TUMACO_081369</SimpleData>
 		<SimpleData name="INGENIO">PROVIDENCIA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1385,7 +1372,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">JOSEPILLA II_082512</SimpleData>
 		<SimpleData name="INGENIO">PROVIDENCIA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
@@ -1398,7 +1385,7 @@
   </Placemark>
   <Placemark>
 	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
-	<ExtendedData><SchemaData schemaUrl="#file19b36968e616">
+	<ExtendedData><SchemaData schemaUrl="#file19b1780e1206">
 		<SimpleData name="NOM_PRED">LA LINDA_082531</SimpleData>
 		<SimpleData name="INGENIO">PROVIDENCIA</SimpleData>
 		<SimpleData name="MUN">Palmira</SimpleData>
