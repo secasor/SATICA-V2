@@ -208,6 +208,7 @@ if (file.exists(ruta_visitas_master)) {
       if (!col %in% colnames(df_visitas_old)) {
         df_visitas_old[[col]] <- ""
       }
+      df_visitas_old[[col]] <- as.character(df_visitas_old[[col]])
     }
     # Filtrar registros históricos "OTRO" o sin georreferenciación
     df_visitas_old <- df_visitas_old %>%
