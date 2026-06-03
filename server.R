@@ -273,7 +273,7 @@ server <- function(input, output, session) {
           RIESGO == "OBSERVACION" ~ "#f1c40f",
           RIESGO == "ALTO" ~ "#e67e22",
           RIESGO == "CRITICO" ~ "#c0392b",
-          RIESGO == "MITIGADO" ~ "#27ae60",
+          RIESGO == "MITIGADO" ~ "#7f8c8d",
           TRUE ~ "#27ae60"
         ),
         TXT_CICLO = sapply(CICLO_DIAS, function(dias) {
@@ -816,6 +816,7 @@ server <- function(input, output, session) {
           RIESGO == "CRITICO" ~ "#c0392b",
           RIESGO == "ALTO" ~ "#e67e22",
           RIESGO == "OBSERVACION" ~ "#f1c40f",
+          RIESGO == "MITIGADO" ~ "#7f8c8d",
           TRUE ~ "#27ae60"
         ),
         shape = "dot", size = 20

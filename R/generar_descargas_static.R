@@ -118,7 +118,7 @@ df_base <- DB_RIESGO %>%
       RIESGO == "OBSERVACION" ~ "#f1c40f",
       RIESGO == "ALTO" ~ "#e67e22",
       RIESGO == "CRITICO" ~ "#c0392b",
-      RIESGO == "MITIGADO" ~ "#27ae60",
+      RIESGO == "MITIGADO" ~ "#7f8c8d",
       TRUE ~ "#27ae60"
     ),
     TXT_ULTIMO_INCENDIO = ifelse(!is.na(FECHA_ULT_I), as.character(FECHA_ULT_I), "Sin Eventos"),

@@ -333,7 +333,7 @@ master_final <- master_final %>%
       riesgo == "OBSERVACION" ~ "#f1c40f",
       riesgo == "ALTO" ~ "#e67e22",
       riesgo == "CRITICO" ~ "#c0392b",
-      riesgo == "MITIGADO" ~ "#27ae60",
+      riesgo == "MITIGADO" ~ "#7f8c8d",
       TRUE ~ "#27ae60"
     ),
     txt_ciclo = purrr::map_chr(CICLO_DIAS_SUE, formatear_tiempo)

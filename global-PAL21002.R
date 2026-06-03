@@ -369,6 +369,64 @@ tryCatch({
     write.csv(coords_manual, RUTA_COORDS, row.names = FALSE, fileEncoding = "UTF-8")
   }
   
+  # --- DETECCIÓN DINÁMICA DE PREDIOS HUÉRFANOS SIN GEOMETRÍA ---
+  orphans_keys <- setdiff(unique(master_rds$cod_hda_key), unique(DATOS_ESPACIALES_BASE$COD_HDA_KEY))
+  valid_prefixes <- c("CA", "CB", "CC", "ML", "MN", "MY", "PC", "PR", "RP")
+  orphans_keys <- orphans_keys[substr(orphans_keys, 1, 2) %in% valid_prefixes]
+  
+  if (length(orphans_keys) > 0) {
+    new_orphans <- master_rds %>%
+      filter(cod_hda_key %in% orphans_keys) %>%
+      group_by(cod_hda_key) %>%
+      summarise(
+        Nombre_Reporte = coalesce(first(na.omit(hda_nombre)), paste("Hda", cod_hda_key)),
+        Ingenio = mapear_ingenio(substr(cod_hda_key, 1, 2)),
+        Municipio_Excel = coalesce(first(na.omit(municipio)), "SIN MUNICIPIO"),
+        Correg_Excel = coalesce(first(na.omit(corregimiento)), "SIN DATO"),
+        n_registros = max(N_EVENTOS_HDA, na.rm = TRUE),
+        n_suertes = n_distinct(cod_unico),
+        .groups = "drop"
+      ) %>%
+      mutate(
+        COD_HDA_8 = gsub("_", "", cod_hda_key)
+      ) %>%
+      filter(!COD_HDA_8 %in% sin_georref_base$COD_HDA_8)
+    
+    if (nrow(new_orphans) > 0) {
+      new_orphans_df <- new_orphans %>%
+        mutate(
+          NOMBRE_HDA = NA_character_,
+          ING_HDA = NA_character_,
+          Tipo_Match = "Sin match — no encontrada en capa",
+          Municipio_Limpio = Municipio_Excel,
+          Clasificacion_Final = "Punto ciego — Suroriente sin geometría",
+          Prioridad = case_when(
+            n_registros >= 10 ~ "ALTA — 10+ eventos",
+            n_registros >= 5  ~ "MEDIA — 5-9 eventos",
+            TRUE              ~ "BAJA — 1-2 eventos"
+          )
+        ) %>%
+        select(names(sin_georref_base))
+      
+      sin_georref_base <- bind_rows(sin_georref_base, new_orphans_df)
+    }
+  }
+  
+  # Asegurar que todas las haciendas sin georreferenciación tengan su plantilla en coords_manual
+  missing_coords <- setdiff(sin_georref_base$COD_HDA_8, coords_manual$COD_HDA_8)
+  if (length(missing_coords) > 0) {
+    new_coords_df <- data.frame(
+      COD_HDA_8 = missing_coords,
+      LAT = NA_real_,
+      LON = NA_real_,
+      Notas = "Detectado en reportes sin geometría catastral",
+      Fecha_Georref = as.character(Sys.Date()),
+      stringsAsFactors = FALSE
+    )
+    coords_manual <- bind_rows(coords_manual, new_coords_df)
+    write.csv(coords_manual, RUTA_COORDS, row.names = FALSE, fileEncoding = "UTF-8")
+  }
+  
   SIN_GEORREF <- sin_georref_base %>%
     left_join(coords_manual %>% select(COD_HDA_8, LAT, LON, Notas, Fecha_Georref),
               by = "COD_HDA_8") %>%
