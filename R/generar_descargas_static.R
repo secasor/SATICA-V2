@@ -410,4 +410,63 @@ if (file.exists("data_estatica/GEO_CACHE_SATICA.rds")) {
   message("⚠️ No se encontró data_estatica/GEO_CACHE_SATICA.rds. Saltando generación de KML.")
 }
 
+# ==============================================================================
+# D. COPIA DE BOLETÍN Y SEGUIMIENTO A DIRECTORIO DE HISTÓRICOS (Boletines/<MES>)
+# ==============================================================================
+message("📂 Generando copia oficial del boletín en la carpeta histórica...")
+
+# 1. Determinar nombre de la carpeta del mes
+meses_es <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+mes_hoy <- meses_es[as.numeric(format(Sys.Date(), "%m"))]
+dir_boletin_mes <- file.path("Boletines", mes_hoy)
+
+if (!dir.exists(dir_boletin_mes)) {
+  dir.create(dir_boletin_mes, recursive = TRUE)
+  message("  Created directory: ", dir_boletin_mes)
+}
+
+# Nombres de los archivos destino
+fecha_str <- as.character(Sys.Date())
+pdf_dest <- file.path(dir_boletin_mes, paste0("Boletin_SATICA_", fecha_str, ".pdf"))
+xlsx_dest <- file.path(dir_boletin_mes, paste0("Seguimiento_Boletin_SATICA_", fecha_str, ".xlsx"))
+
+# 2. Copiar el Excel de seguimiento generado
+if (file.exists("data_master/SATICA_Seguimiento_latest.xlsx")) {
+  file.copy("data_master/SATICA_Seguimiento_latest.xlsx", xlsx_dest, overwrite = TRUE)
+  message("  Excel copiado a: ", xlsx_dest)
+}
+
+# 3. Compilar el reporte PDF localmente usando Pandoc (si está disponible)
+if (!rmarkdown::pandoc_available()) {
+  posibles_rutas_pandoc <- c(
+    "D:/Program Files/RStudio/resources/app/bin/quarto/bin/tools",
+    "C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools",
+    "D:/Program Files/RStudio/bin/pandoc",
+    "C:/Program Files/RStudio/bin/pandoc"
+  )
+  for (ruta in posibles_rutas_pandoc) {
+    if (dir.exists(ruta)) {
+      Sys.setenv(RSTUDIO_PANDOC = ruta)
+      break
+    }
+  }
+}
+
+if (rmarkdown::pandoc_available()) {
+  message("  Compilando reporte.Rmd a PDF...")
+  tryCatch({
+    temp_rmd <- tempfile(fileext = ".Rmd")
+    file.copy("reporte.Rmd", temp_rmd, overwrite = TRUE)
+    out_html <- rmarkdown::render(temp_rmd, quiet = TRUE)
+    pagedown::chrome_print(out_html, output = pdf_dest)
+    # También actualizar data_master/Boletin_SATICA_latest.pdf
+    file.copy(pdf_dest, "data_master/Boletin_SATICA_latest.pdf", overwrite = TRUE)
+    message("  ✅ Boletín PDF compilado y guardado en: ", pdf_dest)
+  }, error = function(e) {
+    message("  ⚠️  Error al compilar el PDF del boletín: ", e$message)
+  })
+} else {
+  message("  ⚠️  No se encontró Pandoc en el sistema. No se pudo generar la copia PDF del boletín.")
+}
+
 message("🏁 Generación de archivos estáticos finalizada con éxito.")

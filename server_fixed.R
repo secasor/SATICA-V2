@@ -594,6 +594,17 @@ server <- function(input, output, session) {
       file.copy("reporte.Rmd", temp_rmd, overwrite = TRUE)
       out_html <- rmarkdown::render(temp_rmd, params = list(datos = datos_r()), quiet = TRUE)
       pagedown::chrome_print(out_html, output = file)
+      
+      # Copiar a la carpeta histórica del mes correspondiente
+      tryCatch({
+        meses_es <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+        mes_hoy <- meses_es[as.numeric(format(Sys.Date(), "%m"))]
+        dir_boletin_mes <- file.path("Boletines", mes_hoy)
+        if (!dir.exists(dir_boletin_mes)) dir.create(dir_boletin_mes, recursive = TRUE)
+        
+        pdf_dest <- file.path(dir_boletin_mes, paste0("Boletin_SATICA_", Sys.Date(), ".pdf"))
+        file.copy(file, pdf_dest, overwrite = TRUE)
+      }, error = function(e) NULL)
     }
   )
   
@@ -883,7 +894,6 @@ server <- function(input, output, session) {
       )
   })
 
-  # --- DESCARGA EXCEL SEGUIMIENTO ---
   output$descargar_excel <- downloadHandler(
     filename = function() { paste0("Seguimiento_SATICA_", Sys.Date(), ".xlsx") },
     content  = function(file) {
@@ -893,6 +903,17 @@ server <- function(input, output, session) {
                ESTADO_CONTROL, DIFF_MESES) %>%
         mutate(FECHA_ULT_I = as.character(FECHA_ULT_I))
       openxlsx::write.xlsx(df_export, file)
+      
+      # Copiar a la carpeta histórica del mes correspondiente
+      tryCatch({
+        meses_es <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+        mes_hoy <- meses_es[as.numeric(format(Sys.Date(), "%m"))]
+        dir_boletin_mes <- file.path("Boletines", mes_hoy)
+        if (!dir.exists(dir_boletin_mes)) dir.create(dir_boletin_mes, recursive = TRUE)
+        
+        xlsx_dest <- file.path(dir_boletin_mes, paste0("Seguimiento_Boletin_SATICA_", Sys.Date(), ".xlsx"))
+        file.copy(file, xlsx_dest, overwrite = TRUE)
+      }, error = function(e) NULL)
     }
   )
   
