@@ -455,9 +455,8 @@ if (!rmarkdown::pandoc_available()) {
 if (rmarkdown::pandoc_available()) {
   message("  Compilando reporte.Rmd a PDF...")
   tryCatch({
-    temp_rmd <- tempfile(fileext = ".Rmd")
-    file.copy("reporte.Rmd", temp_rmd, overwrite = TRUE)
-    out_html <- rmarkdown::render(temp_rmd, quiet = TRUE)
+    temp_html <- tempfile(fileext = ".html")
+    out_html <- rmarkdown::render("reporte.Rmd", output_file = temp_html, quiet = TRUE)
     pagedown::chrome_print(out_html, output = pdf_dest)
     # También actualizar data_master/Boletin_SATICA_latest.pdf
     file.copy(pdf_dest, "data_master/Boletin_SATICA_latest.pdf", overwrite = TRUE)
