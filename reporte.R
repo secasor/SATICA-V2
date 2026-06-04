@@ -1,0 +1,348 @@
+params <-
+list(datos = NA)
+
+## ----setup, include=FALSE-----------------------------------------------------
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+# LIBRERÍAS OBLIGATORIAS
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+
+# Desactivar geometría esférica para prevenir errores topológicos por vértices duplicados
+sf::sf_use_s2(FALSE)
+
+# 1. RECEPCIÓN DE DATOS DIRECTO DE SATICA (CON FALLBACK RESISTENTE EN LA NUBE)
+datos_vigilancia <- params$datos
+if (!inherits(datos_vigilancia, "data.frame") || nrow(datos_vigilancia) == 0) {
+  message("🌐 Cargando base de datos maestra consolidada en la Nube...")
+  
+  # 1. Cargar bases maestras y de caché
+  master_rds <- readRDS("data_master/SATICA_MASTER_v2.2.rds")
+  DATOS_ESPACIALES_BASE <- readRDS("data_estatica/GEO_CACHE_SATICA.rds")
+  
+  # 2. Agrupar master_rds a nivel de Hacienda (como en global.R)
+  formatear_tiempo_g <- function(dias) {
+    if (is.na(dias) || dias == 0) return("Sin Historial")
+    if (dias < 60) return(paste(round(dias), "días"))
+    meses <- floor(dias / 30.44); sobra <- round(dias %% 30.44)
+    txt_m <- ifelse(meses == 1, "1 mes", paste(meses, "meses"))
+    txt_d <- ifelse(sobra > 0, paste(sobra, "días"), "")
+    return(trimws(paste(txt_m, txt_d)))
+  }
+  
+  DB_RIESGO <- master_rds %>%
+    group_by(cod_hda_key) %>%
+    summarise(
+      TOTAL_HISTORICO = max(N_EVENTOS_HDA,      na.rm = TRUE),
+      N_EVENTOS       = max(N_EVENTOS_HDA,      na.rm = TRUE),
+      FECHA_ULT_I     = max(FECHA_ULT_I_HDA,    na.rm = TRUE),
+      CICLO_DIAS      = mean(FRECUENCIA_HDA_DIAS, na.rm = TRUE),
+      TXT_CICLO       = sapply(mean(FRECUENCIA_HDA_DIAS, na.rm = TRUE), formatear_tiempo_g),
+      DIFF_MESES      = min(DIFF_HDA_MESES,      na.rm = TRUE),
+      RIESGO = { idx <- which.min(DIFF_HDA_MESES); if (length(idx) > 0) riesgo[idx] else NA_character_ },
+      COL    = { idx <- which.min(DIFF_HDA_MESES); if (length(idx) > 0) col[idx]    else NA_character_ },
+      FECHA_ESTIMADA  = as.Date(max(FECHA_ULT_I_HDA, na.rm = TRUE) +
+                                  mean(FRECUENCIA_HDA_DIAS, na.rm = TRUE)),
+      SAT_FUEGO       = if("Satelite_Fuego" %in% names(.)) any(Satelite_Fuego == TRUE, na.rm = TRUE) else FALSE,
+      GOES_FUEGO      = if("GOES_Fuego" %in% names(.)) any(GOES_Fuego == TRUE, na.rm = TRUE) else FALSE,
+      ESTADO_GOES     = if("Estado_GOES" %in% names(.)) first(na.omit(Estado_GOES)) else "Normal",
+      MAX_NDVI        = if("NDVI" %in% names(.)) max(NDVI, na.rm = TRUE) else 0.5,
+      ESTADO_BIOMASA  = if("Alerta_Combustion" %in% names(.)) first(na.omit(Alerta_Combustion)) else "Sin Datos",
+      .groups = "drop"
+    ) %>%
+    mutate(
+      FECHA_ULT_I = if_else(is.infinite(FECHA_ULT_I), as.Date(NA), as.Date(FECHA_ULT_I)),
+      RIESGO      = coalesce(RIESGO, "BAJO"),
+      COL         = coalesce(COL,    "#7f8c8d"),
+      COD_HDA_KEY = cod_hda_key
+    )
+    
+  # 3. Cruzar con geometría base para heredar municipio/corregimiento/hda_label
+  DATOS_OFICIALES <- DATOS_ESPACIALES_BASE %>%
+    left_join(DB_RIESGO, by = "COD_HDA_KEY") %>%
+    mutate(
+      TOTAL_HISTORICO = coalesce(TOTAL_HISTORICO, 0),
+      N_EVENTOS = coalesce(N_EVENTOS, 0),
+      FECHA_ULT_I = as.Date(FECHA_ULT_I, origin = "1970-01-01"),
+      SAT_FUEGO   = coalesce(SAT_FUEGO, FALSE),
+      GOES_FUEGO  = coalesce(GOES_FUEGO, FALSE),
+      ESTADO_GOES = coalesce(ESTADO_GOES, "Normal"),
+      ESTADO_BIOMASA = coalesce(ESTADO_BIOMASA, "Sin Datos"),
+      RIESGO      = coalesce(RIESGO, "BAJO"),
+      COL         = coalesce(COL,    "#2ecc71")
+    ) %>%
+    filter(INGENIO_FULL != "OTRO")
+    
+  # 4. Cruzar con visitas
+  ruta_csv <- "visitas_cvc.csv"
+  df_v <- NULL
+  if (file.exists(ruta_csv)) {
+    df_v <- tryCatch({ read.csv(ruta_csv, stringsAsFactors = FALSE) %>% janitor::clean_names() }, error = function(e) NULL)
+  }
+  
+  if(!is.null(df_v) && all(c("cod_hda_key", "fecha_visita") %in% names(df_v))) {
+    datos_visitas <- df_v %>%
+      mutate(
+        COD_HDA_KEY = toupper(trimws(as.character(cod_hda_key))),
+        FECHA_VISITA = as.Date(fecha_visita)
+      ) %>%
+      group_by(COD_HDA_KEY) %>%
+      summarise(
+        HISTORIAL_VISITAS = paste(sort(format(unique(FECHA_VISITA), "%Y-%m-%d")), collapse = " | "),
+        FECHA_VISITA = max(FECHA_VISITA, na.rm = TRUE),
+        RADICADO = if("radicado" %in% names(df_v)) { val <- trimws(as.character(last(radicado))); ifelse(is.na(val) | val == "", "S/N", val) } else "S/N",
+        .groups = "drop"
+      )
+  } else {
+    datos_visitas <- data.frame(COD_HDA_KEY = character(), FECHA_VISITA = as.Date(character()), RADICADO = character(), HISTORIAL_VISITAS = character())
+  }
+  
+  fecha_hoy <- Sys.Date()
+  datos_vigilancia <- DATOS_OFICIALES %>% 
+    left_join(datos_visitas, by = "COD_HDA_KEY")
+    
+  if (!"HISTORIAL_VISITAS" %in% names(datos_vigilancia)) datos_vigilancia$HISTORIAL_VISITAS <- NA_character_
+  if (!"FECHA_VISITA" %in% names(datos_vigilancia)) datos_vigilancia$FECHA_VISITA <- as.Date(NA)
+  if (!"RADICADO" %in% names(datos_vigilancia)) datos_vigilancia$RADICADO <- "S/N"
+  
+  datos_vigilancia <- datos_vigilancia %>%
+    mutate(
+      DIAS_DESDE_ULT = as.numeric(fecha_hoy - FECHA_ULT_I),
+      DIAS_DESDE_VISITA = as.numeric(fecha_hoy - FECHA_VISITA),
+      VISITA_VALIDA = !is.na(FECHA_VISITA) & !is.na(RADICADO) & RADICADO != "S/N" & RADICADO != "" &
+                      (is.na(FECHA_ULT_I) | FECHA_VISITA >= FECHA_ULT_I),
+      ESTADO_CONTROL = case_when(
+        !VISITA_VALIDA ~ "Sin Intervencion",
+        VISITA_VALIDA & RIESGO %in% c("ALTO", "CRITICO") ~ "🛡️ Visitado",
+        VISITA_VALIDA & RIESGO == "MITIGADO" ~ "✅ Incendio Evitado (Éxito)",
+        TRUE ~ "Visita Preventiva"
+      )
+    )
+}
+
+if(inherits(datos_vigilancia, "sf")) {
+  coords <- st_coordinates(suppressWarnings(st_centroid(datos_vigilancia)))
+  datos_vigilancia$COORD_VAL <- paste(round(coords[,2], 4), round(coords[,1], 4), sep=", ")
+  datos_vigilancia <- sf::st_drop_geometry(datos_vigilancia)
+} else {
+  datos_vigilancia$COORD_VAL <- "Ver Mapa"
+}
+
+# 2. PREPARACIÓN DE COLUMNAS PARA EL BOLETÍN
+datos_vigilancia <- datos_vigilancia %>%
+  mutate(
+    MUN_VAL = MUNICIPIO,
+    HDA_NOM = HDA_LABEL,
+    CORREG_VAL = CORREGIMIENTO,
+    INGENIO_VAL = INGENIO_FULL,
+    TOTAL_HISTORICO = ifelse(is.na(N_EVENTOS), 0, as.numeric(N_EVENTOS)),
+    
+    TXT_ULTIMO_INCENDIO = ifelse(!is.na(FECHA_ULT_I), as.character(FECHA_ULT_I), "Sin Eventos"),
+    TXT_AUDITORIA = case_when(
+      ESTADO_CONTROL == "🛡️ Visitado" & !is.na(RADICADO) & RADICADO != "S/N" ~ paste("Visitado (Rad:", RADICADO, ")"),
+      ESTADO_CONTROL == "🛡️ Visitado" ~ "Visitado",
+      ESTADO_CONTROL == "✅ Incendio Evitado (Éxito)" ~ "Éxito / Evitado",
+      TRUE ~ "Sin Intervención"
+    ),
+    
+    PESO_RIESGO = case_when(
+      RIESGO == "CRITICO" ~ 1,
+      RIESGO == "ALTO" ~ 2,
+      RIESGO == "OBSERVACION" ~ 3,
+      TRUE ~ 4
+    )
+  )
+
+# 3. FILTRO PARA ALERTAS INMINENTES (CRÍTICO Y ALTO)
+datos_alerta <- datos_vigilancia %>% 
+  filter(RIESGO %in% c("CRITICO", "ALTO")) %>%
+  arrange(PESO_RIESGO, desc(DIFF_MESES))
+
+# 4. FILTRO QUINCENAL ESTRICTO (±15 Días - Solo para el Punto 2)
+datos_quincena <- datos_alerta %>%
+  mutate(
+    FECH_EST = as.Date(FECHA_ULT_I) + CICLO_DIAS,
+    DIAS_FALTANTES = as.numeric(FECH_EST - Sys.Date()),
+    TXT_ESTIMADO = ifelse(!is.na(FECH_EST), as.character(FECH_EST), "N/A")
+  ) %>%
+  filter(DIAS_FALTANTES >= -15 & DIAS_FALTANTES <= 15)
+
+
+## ----resumen_prioritario, results='asis'--------------------------------------
+# Métrica Operativa de Control CVC (Muestra todas las críticas/altas)
+total_inminentes <- nrow(datos_alerta)
+visitadas_inminentes <- sum(datos_alerta$ESTADO_CONTROL == "🛡️ Visitado", na.rm = TRUE)
+pendientes <- total_inminentes - visitadas_inminentes
+
+if(total_inminentes > 0) {
+  cat(paste0("<p style='padding: 10px; background-color: #F8F9F9; border-left: 5px solid #2E86C1; border-radius: 3px;'><b>Balance de Control Territorial:</b> El sistema SATICA detecta actualmente <b>", total_inminentes, "</b> haciendas en niveles de riesgo CRÍTICO y ALTO. De estas, la corporación ya ha desplegado control y auditoría en <b>", visitadas_inminentes, "</b> predios, dejando <b>", pendientes, "</b> haciendas pendientes de intervención prioritaria.</p>"))
+}
+
+# Gráfica de Barras Oficial
+resumen_data <- datos_vigilancia %>%
+  mutate(RIESGO = factor(RIESGO, levels = c("CRITICO", "ALTO", "OBSERVACION", "BAJO", "MITIGADO")))
+
+if(nrow(resumen_data) > 0) {
+  grafico_resumen <- ggplot(resumen_data, aes(x = RIESGO, fill = RIESGO)) +
+    geom_bar(width = 0.7, color = "black", alpha = 0.9) +
+    scale_fill_manual(
+      values = c("CRITICO"="#CC0000", "ALTO"="#FF8C00", "OBSERVACION"="#F1C40F", "BAJO"="#2ECC71", "MITIGADO"="#7F8C8D"), 
+      drop = FALSE
+    ) +
+    scale_x_discrete(drop = FALSE) +
+    labs(
+      title = "Estado General de Riesgos - DAR Suroriente",
+      subtitle = "Distribución por Nivel de Alerta",
+      x = "Nivel de Riesgo",
+      y = "Cantidad de Haciendas"
+    ) +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(face = "bold", size = 14),
+      axis.text.x = element_text(size = 11, face = "bold")
+    )
+  print(grafico_resumen)
+  
+  # Tabla Resumen Consolidada
+  resumen_tab <- resumen_data %>%
+    group_by(RIESGO) %>%
+    summarise(Cantidad = n(), .groups = 'drop') %>%
+    arrange(match(RIESGO, c("CRITICO", "ALTO", "OBSERVACION", "BAJO", "MITIGADO")))
+
+  cat(as.character(
+    kable(resumen_tab, col.names = c("Nivel de Riesgo", "N° de Haciendas")) %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
+  ))
+}
+
+
+## ----cronograma_agrupado, results='asis'--------------------------------------
+municipios_con_alerta <- sort(unique(datos_quincena$MUN_VAL))
+
+if(length(municipios_con_alerta) > 0) {
+  for(mun in municipios_con_alerta) {
+    cat(paste("\n### Municipio:", mun, "\n"))
+    
+    df_cronograma <- datos_quincena %>%
+      filter(MUN_VAL == mun) %>%
+      select(
+        Hacienda = HDA_NOM,
+        Corregimiento = CORREG_VAL,
+        Ingenio = INGENIO_VAL,
+        `Último Evento` = TXT_ULTIMO_INCENDIO,
+        `Ciclo Estimado` = TXT_ESTIMADO,
+        `Histórico` = TOTAL_HISTORICO,
+        `Gestión CVC` = TXT_AUDITORIA,
+        Coordenadas = COORD_VAL
+      )
+    
+    cat(as.character(
+      kable(df_cronograma) %>%
+        kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T, font_size = 11) %>%
+        row_spec(0, background = "#2C3E50", color = "white") %>%
+        column_spec(3, width = "100px") %>%
+        column_spec(4, width = "80px", extra_css = "white-space: nowrap;") %>%
+        column_spec(5, width = "80px", bold = T, color = "#C0392B", extra_css = "white-space: nowrap;") %>%
+        column_spec(6, width = "50px", bold = T) %>%
+        column_spec(7, width = "120px", bold = T, color = "#2E86C1") %>%
+        column_spec(8, width = "140px", bold = T, color = "black", extra_css = "white-space: nowrap;")
+    ))
+    cat("\n<br>\n") 
+  }
+} else {
+  cat("### ✅ No se registran alertas inminentes en la ventana operativa (±15 días) para este ciclo.")
+}
+
+
+## ----focalizacion_territorial, results='asis'---------------------------------
+top_municipios <- datos_vigilancia %>%
+  group_by(MUN_VAL) %>%
+  slice_max(order_by = TOTAL_HISTORICO, n = 10, with_ties = FALSE) %>%
+  arrange(MUN_VAL, desc(TOTAL_HISTORICO))
+
+municipios_lista <- sort(unique(top_municipios$MUN_VAL))
+
+if(length(municipios_lista) > 0) {
+  for(mun in municipios_lista) {
+    cat(paste("\n### Municipio:", mun, "\n"))
+    
+    df_mun <- top_municipios %>%
+      filter(MUN_VAL == mun) %>%
+      ungroup() %>%
+      select(
+        Hacienda = HDA_NOM,
+        Corregimiento = CORREG_VAL,
+        Ingenio = INGENIO_VAL,
+        Riesgo = RIESGO,
+        `Último Evento` = TXT_ULTIMO_INCENDIO,
+        Historial = TOTAL_HISTORICO,
+        `Gestión CVC` = TXT_AUDITORIA,
+        Coordenadas = COORD_VAL
+      )
+    
+    cat(as.character(
+      kable(df_mun) %>%
+        kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T, font_size = 11) %>%
+        row_spec(0, background = "#2C3E50", color = "white") %>%
+        column_spec(3, width = "100px") %>%
+        column_spec(4, width = "90px", bold = T, color = "white",
+                    background = case_when(
+                      df_mun$Riesgo == "CRITICO" ~ "#CC0000",
+                      df_mun$Riesgo == "ALTO" ~ "#FF8C00",
+                      df_mun$Riesgo == "OBSERVACION" ~ "#F1C40F",
+                      df_mun$Riesgo == "MITIGADO" ~ "#7F8C8D",
+                      df_mun$Riesgo == "BAJO" ~ "#2ECC71",
+                      TRUE ~ "#2ECC71"
+                    )) %>%
+        column_spec(5, width = "90px", extra_css = "white-space: nowrap;") %>%
+        column_spec(6, width = "60px", bold = T) %>%
+        column_spec(7, width = "130px") %>%
+        column_spec(8, width = "140px", bold = T, color = "black", extra_css = "white-space: nowrap;")
+    ))
+    cat("\n<br>\n") 
+  }
+}
+
+
+## ----ficha_tecnica_consolidada------------------------------------------------
+ficha_maestra <- datos_vigilancia %>%
+  slice_max(order_by = TOTAL_HISTORICO, n = 10, with_ties = FALSE) %>%
+  arrange(desc(TOTAL_HISTORICO)) %>%
+  select(
+    Municipio = MUN_VAL,
+    Hacienda = HDA_NOM,
+    Ingenio = INGENIO_VAL,
+    Nivel = RIESGO,
+    `Último Evento` = TXT_ULTIMO_INCENDIO,
+    `Histórico` = TOTAL_HISTORICO,
+    `Gestión CVC` = TXT_AUDITORIA,
+    Coordenadas = COORD_VAL
+  )
+
+if(nrow(ficha_maestra) > 0) {
+  kable(ficha_maestra) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T, font_size = 10, latex_options = "repeat_header") %>%
+  row_spec(0, background = "#1B2631", color = "white", bold = T) %>%
+  column_spec(3, width = "100px") %>%
+  column_spec(4, bold = T, color = "white", width = "80px",
+              background = case_when(
+                ficha_maestra$Nivel == "CRITICO" ~ "#CC0000",
+                ficha_maestra$Nivel == "ALTO" ~ "#FF8C00",
+                ficha_maestra$Nivel == "OBSERVACION" ~ "#F1C40F",
+                ficha_maestra$Nivel == "BAJO" ~ "#2ECC71",
+                ficha_maestra$Nivel == "MITIGADO" ~ "#7F8C8D",
+                TRUE ~ "#7F8C8D"
+              )) %>%
+  column_spec(5, width = "80px", extra_css = "white-space: nowrap;") %>%
+  column_spec(6, width = "60px", bold = T) %>%
+  column_spec(7, width = "120px", color = "#2E86C1") %>%
+  column_spec(8, width = "140px", bold = T, color = "black", border_left = T,
+              extra_css = "white-space: nowrap;")
+} else {
+  cat("### ⚠️ No hay datos suficientes para generar la Ficha Técnica Regional.")
+}
+

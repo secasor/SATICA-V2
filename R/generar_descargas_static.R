@@ -50,7 +50,7 @@ ruta_excel_editor <- "Seguimiento_Visitas_Editor.xlsx"
 ruta_visitas_master <- "visitas_cvc.csv"
 
 if (file.exists(ruta_excel_editor) && file.exists(ruta_visitas_master)) {
-  message("📥 Sincronizando visitas desde Seguimiento_Visitas_Editor.xlsx...")
+  message("[SYNC] Sincronizando visitas desde Seguimiento_Visitas_Editor.xlsx...")
   tryCatch({
     df_excel <- openxlsx::read.xlsx(ruta_excel_editor, detectDates = TRUE)
     colnames(df_excel) <- tolower(colnames(df_excel))
@@ -95,13 +95,13 @@ if (file.exists(ruta_excel_editor) && file.exists(ruta_visitas_master)) {
       
       if (any_changes) {
         write.csv(df_csv, ruta_visitas_master, row.names = FALSE, fileEncoding = "UTF-8")
-        message("✅ visitas_cvc.csv sincronizado con los nuevos datos de Seguimiento_Visitas_Editor.xlsx.")
+        message("[OK] visitas_cvc.csv sincronizado con los nuevos datos de Seguimiento_Visitas_Editor.xlsx.")
       } else {
-        message("ℹ️ No se detectaron nuevas visitas en Seguimiento_Visitas_Editor.xlsx.")
+        message("[INFO] No se detectaron nuevas visitas en Seguimiento_Visitas_Editor.xlsx.")
       }
     }
   }, error = function(e) {
-    message("⚠️ Error durante la sincronización del Excel: ", e$message)
+    message("[ERROR] Error durante la sincronizacion del Excel: ", e$message)
   })
 }
 
@@ -365,7 +365,7 @@ message("✅ visitas_cvc.csv (documento maestro) actualizado con éxito.")
 
 # --- GENERACIÓN DEL EXCEL DE EDICIÓN PROTEGIDO ---
 tryCatch({
-  message("📊 Generando excel de edición protegido (Seguimiento_Visitas_Editor.xlsx)...")
+  message("[EXCEL] Generando excel de edición protegido (Seguimiento_Visitas_Editor.xlsx)...")
   
   df_excel_export <- df_visitas_updated %>%
     select(
@@ -410,9 +410,9 @@ tryCatch({
   
   # Guardar el Excel en el workspace root para OneDrive
   openxlsx::saveWorkbook(wb, "Seguimiento_Visitas_Editor.xlsx", overwrite = TRUE)
-  message("✅ Seguimiento_Visitas_Editor.xlsx generado exitosamente con protección.")
+  message("[OK] Seguimiento_Visitas_Editor.xlsx generado exitosamente con protección.")
 }, error = function(e) {
-  message("⚠️ Error al generar Seguimiento_Visitas_Editor.xlsx: ", e$message)
+  message("[ERROR] Error al generar Seguimiento_Visitas_Editor.xlsx: ", e$message)
 })
 
 # ==============================================================================

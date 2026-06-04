@@ -408,18 +408,18 @@ tryCatch({
       success_count = total_exitos
     )
     jsonlite::write_json(summary_data, "data_master/data_summary.json", auto_unbox = TRUE, pretty = TRUE)
-    message("📊 data_summary.json generado exitosamente para el portal web.")
+    message("[OK] data_summary.json generado exitosamente para el portal web.")
   } else {
-    message("⚠️ jsonlite no está disponible para exportar JSON.")
+    message("[WARNING] jsonlite no esta disponible para exportar JSON.")
   }
 }, error = function(e) {
-  message("⚠️ No se pudo generar el data_summary.json: ", e$message)
+  message("[ERROR] No se pudo generar el data_summary.json: ", e$message)
 })
 
 message("\n==========================================================")
-message("✅ PROCESO EXITOSO: MASTER V2.4 GENERADO BAJO REGLAS DE BLINDAJE")
-message("📍 Municipios procesados: ", paste(unique(master_final$municipio), collapse = ", "))
-message("🔥 Hacienda Ejemplo: ", head(master_final$hda_nombre, 1), " en ", head(master_final$municipio, 1))
+message("[OK] PROCESO EXITOSO: MASTER V2.4 GENERADO BAJO REGLAS DE BLINDAJE")
+message("Municipios procesados: ", paste(unique(master_final$municipio), collapse = ", "))
+message("Hacienda Ejemplo: ", head(master_final$hda_nombre, 1), " en ", head(master_final$municipio, 1))
 message("==========================================================\n")
 
 # --- GENERACIÓN DE ARCHIVOS DE DESCARGA ESTÁTICOS ---
@@ -427,6 +427,6 @@ if (file.exists("R/generar_descargas_static.R")) {
   tryCatch({
     source("R/generar_descargas_static.R", encoding = "UTF-8")
   }, error = function(e) {
-    message("⚠️ Error al generar descargas estáticas: ", e$message)
+    message("[ERROR] Error al generar descargas estaticas: ", e$message)
   })
 }
