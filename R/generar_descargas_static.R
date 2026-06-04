@@ -122,20 +122,16 @@ df_base <- DB_RIESGO %>%
       TRUE ~ "#27ae60"
     ),
     TXT_ULTIMO_INCENDIO = ifelse(!is.na(FECHA_ULT_I), as.character(FECHA_ULT_I), "Sin Eventos"),
-    VISITA_VALIDA = case_when(
-      is.na(FECHA_VISITA) ~ FALSE,
-      is.na(FECHA_ULT_I) ~ TRUE, 
-      FECHA_VISITA >= FECHA_ULT_I ~ TRUE,
-      TRUE ~ FALSE
-    ),
+    VISITA_VALIDA = !is.na(FECHA_VISITA) & !is.na(RADICADO) & RADICADO != "S/N" & RADICADO != "" &
+                    (is.na(FECHA_ULT_I) | FECHA_VISITA >= FECHA_ULT_I),
     ESTADO_CONTROL = case_when(
       !VISITA_VALIDA ~ "Sin Intervencion",
-      VISITA_VALIDA & RIESGO %in% c("ALTO", "CRITICO") ~ "Visitado",
-      VISITA_VALIDA & (RIESGO == "BAJO" | RIESGO == "MITIGADO") & DIFF_MESES > 3 ~ "Incendio Evitado (Exito)",
+      VISITA_VALIDA & RIESGO %in% c("ALTO", "CRITICO") ~ "🛡️ Visitado",
+      VISITA_VALIDA & RIESGO == "MITIGADO" ~ "✅ Incendio Evitado (Éxito)",
       TRUE ~ "Visita Preventiva"
     ),
     TXT_AUDITORIA = case_when(
-      ESTADO_CONTROL == "Visitado" & !is.na(RADICADO) & RADICADO != "S/N" ~ paste("Visitado (Rad:", RADICADO, ")"),
+      ESTADO_CONTROL == "🛡️ Visitado" & !is.na(RADICADO) & RADICADO != "S/N" ~ paste("Visitado (Rad:", RADICADO, ")"),
       TRUE ~ ESTADO_CONTROL
     ),
     PESO_RIESGO = case_when(RIESGO == "CRITICO" ~ 1, RIESGO == "ALTO" ~ 2, RIESGO == "OBSERVACION" ~ 3, TRUE ~ 4)

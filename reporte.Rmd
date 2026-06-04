@@ -153,10 +153,13 @@ if (!inherits(datos_vigilancia, "data.frame") || nrow(datos_vigilancia) == 0) {
     mutate(
       DIAS_DESDE_ULT = as.numeric(fecha_hoy - FECHA_ULT_I),
       DIAS_DESDE_VISITA = as.numeric(fecha_hoy - FECHA_VISITA),
+      VISITA_VALIDA = !is.na(FECHA_VISITA) & !is.na(RADICADO) & RADICADO != "S/N" & RADICADO != "" &
+                      (is.na(FECHA_ULT_I) | FECHA_VISITA >= FECHA_ULT_I),
       ESTADO_CONTROL = case_when(
-        SAT_FUEGO & !is.na(FECHA_VISITA) & (abs(as.numeric(FECHA_VISITA - FECHA_ULT_I)) <= 5) ~ "✅ Incendio Evitado (Éxito)",
-        !is.na(FECHA_VISITA) & (is.na(FECHA_ULT_I) | FECHA_VISITA >= FECHA_ULT_I) ~ "🛡️ Visitado",
-        TRUE ~ "❌ Sin Visita"
+        !VISITA_VALIDA ~ "Sin Intervencion",
+        VISITA_VALIDA & RIESGO %in% c("ALTO", "CRITICO") ~ "🛡️ Visitado",
+        VISITA_VALIDA & RIESGO == "MITIGADO" ~ "✅ Incendio Evitado (Éxito)",
+        TRUE ~ "Visita Preventiva"
       )
     )
 }

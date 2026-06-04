@@ -271,16 +271,12 @@ server <- function(input, output, session) {
         TXT_ULTIMO = ifelse(!is.na(FECHA_ULT_I), as.character(FECHA_ULT_I), "Sin Incendios"),
         TXT_ESTIMADO = ifelse(!is.na(FECHA_ULT_I) & !is.na(CICLO_DIAS), as.character(as.Date(FECHA_ULT_I + CICLO_DIAS)), "N/A"),
         
-        VISITA_VALIDA = case_when(
-          is.na(FECHA_VISITA) ~ FALSE,
-          is.na(FECHA_ULT_I) ~ TRUE, 
-          FECHA_VISITA >= FECHA_ULT_I ~ TRUE,
-          TRUE ~ FALSE
-        ),
+        VISITA_VALIDA = !is.na(FECHA_VISITA) & !is.na(RADICADO) & RADICADO != "S/N" & RADICADO != "" &
+                        (is.na(FECHA_ULT_I) | FECHA_VISITA >= FECHA_ULT_I),
         ESTADO_CONTROL = case_when(
           !VISITA_VALIDA ~ "Sin Intervencion",
-          VISITA_VALIDA & RIESGO %in% c("ALTO", "CRITICO") ~ "Visitado",
-          VISITA_VALIDA & (RIESGO == "BAJO" | RIESGO == "MITIGADO") & DIFF_MESES > 3 ~ "Incendio Evitado (Exito)",
+          VISITA_VALIDA & RIESGO %in% c("ALTO", "CRITICO") ~ "🛡️ Visitado",
+          VISITA_VALIDA & RIESGO == "MITIGADO" ~ "✅ Incendio Evitado (Éxito)",
           TRUE ~ "Visita Preventiva"
         )
       )

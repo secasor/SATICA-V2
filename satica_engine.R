@@ -374,12 +374,30 @@ saveRDS(master_final, "data_master/SATICA_MASTER_v2.2.rds")
 # --- GENERAR DATA_SUMMARY.JSON PARA PORTAL WEB ---
 tryCatch({
   if (requireNamespace("jsonlite", quietly = TRUE)) {
-    # Calcular visitas de éxito de forma consistente
     visitas_path <- "visitas_cvc.csv"
     total_exitos <- 0
     if (file.exists(visitas_path)) {
       df_v <- read.csv(visitas_path, stringsAsFactors = FALSE)
-      total_exitos <- length(unique(df_v$cod_hda_key))
+      colnames(df_v) <- tolower(colnames(df_v))
+      
+      if (all(c("cod_hda_key", "fecha_visita", "radicado") %in% colnames(df_v))) {
+        # Identificar haciendas con visitas válidas (tienen fecha y radicado válido)
+        hdas_visitadas <- df_v %>%
+          mutate(
+            cod_hda_key = toupper(trimws(as.character(cod_hda_key))),
+            fecha_visita = trimws(as.character(fecha_visita)),
+            radicado = toupper(trimws(as.character(radicado)))
+          ) %>%
+          filter(
+            !is.na(fecha_visita) & fecha_visita != "" & fecha_visita != "NA" &
+            !is.na(radicado) & radicado != "" & radicado != "NA" & radicado != "S/N"
+          ) %>%
+          pull(cod_hda_key) %>%
+          unique()
+        
+        # Contar cuántas de estas haciendas visitadas tienen riesgo MITIGADO en master_final
+        total_exitos <- length(unique(master_final$cod_hda_key[master_final$riesgo == "MITIGADO" & master_final$cod_hda_key %in% hdas_visitadas]))
+      }
     }
     
     summary_data <- list(
