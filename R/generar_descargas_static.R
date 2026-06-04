@@ -45,6 +45,66 @@ mapear_ingenio <- function(codigo) {
   )
 }
 
+# --- SINCRONIZACIÓN EXCEL BRIDGE -> CSV ---
+ruta_excel_editor <- "Seguimiento_Visitas_Editor.xlsx"
+ruta_visitas_master <- "visitas_cvc.csv"
+
+if (file.exists(ruta_excel_editor) && file.exists(ruta_visitas_master)) {
+  message("📥 Sincronizando visitas desde Seguimiento_Visitas_Editor.xlsx...")
+  tryCatch({
+    df_excel <- openxlsx::read.xlsx(ruta_excel_editor, detectDates = TRUE)
+    colnames(df_excel) <- tolower(colnames(df_excel))
+    
+    if (all(c("cod_hda_key", "fecha_visita", "radicado") %in% colnames(df_excel))) {
+      df_csv <- read.csv(ruta_visitas_master, stringsAsFactors = FALSE)
+      colnames(df_csv) <- tolower(colnames(df_csv))
+      
+      # Asegurar tipo carácter en columnas clave
+      df_csv$cod_hda_key <- toupper(trimws(as.character(df_csv$cod_hda_key)))
+      df_csv$fecha_visita <- as.character(df_csv$fecha_visita)
+      df_csv$radicado <- as.character(df_csv$radicado)
+      
+      df_excel$cod_hda_key <- toupper(trimws(as.character(df_excel$cod_hda_key)))
+      df_excel$fecha_visita <- trimws(as.character(df_excel$fecha_visita))
+      df_excel$radicado <- trimws(as.character(df_excel$radicado))
+      
+      any_changes <- FALSE
+      
+      for (i in seq_len(nrow(df_excel))) {
+        key_ex <- df_excel$cod_hda_key[i]
+        fecha_ex <- df_excel$fecha_visita[i]
+        rad_ex <- df_excel$radicado[i]
+        
+        if (is.na(key_ex) || key_ex == "") next
+        if (is.na(fecha_ex) || fecha_ex %in% c("NA", "", "NULL")) fecha_ex <- ""
+        if (is.na(rad_ex) || rad_ex %in% c("NA", "", "NULL")) rad_ex <- ""
+        
+        if (key_ex %in% df_csv$cod_hda_key) {
+          idx <- which(df_csv$cod_hda_key == key_ex)
+          
+          old_fecha <- ifelse(is.na(df_csv$fecha_visita[idx]), "", trimws(df_csv$fecha_visita[idx]))
+          old_rad <- ifelse(is.na(df_csv$radicado[idx]), "", trimws(df_csv$radicado[idx]))
+          
+          if ((fecha_ex != "" && fecha_ex != old_fecha) || (rad_ex != "" && rad_ex != old_rad)) {
+            if (fecha_ex != "") df_csv$fecha_visita[idx] <- fecha_ex
+            if (rad_ex != "") df_csv$radicado[idx] <- rad_ex
+            any_changes <- TRUE
+          }
+        }
+      }
+      
+      if (any_changes) {
+        write.csv(df_csv, ruta_visitas_master, row.names = FALSE, fileEncoding = "UTF-8")
+        message("✅ visitas_cvc.csv sincronizado con los nuevos datos de Seguimiento_Visitas_Editor.xlsx.")
+      } else {
+        message("ℹ️ No se detectaron nuevas visitas en Seguimiento_Visitas_Editor.xlsx.")
+      }
+    }
+  }, error = function(e) {
+    message("⚠️ Error durante la sincronización del Excel: ", e$message)
+  })
+}
+
 # Cargar visitas
 df_v <- NULL
 if (file.exists("visitas_cvc.csv")) {
@@ -302,6 +362,58 @@ for (i in seq_len(nrow(df_recs_actual))) {
 # Guardar el archivo visitas_cvc.csv con UTF-8
 write.csv(df_visitas_updated, ruta_visitas_master, row.names = FALSE, fileEncoding = "UTF-8")
 message("✅ visitas_cvc.csv (documento maestro) actualizado con éxito.")
+
+# --- GENERACIÓN DEL EXCEL DE EDICIÓN PROTEGIDO ---
+tryCatch({
+  message("📊 Generando excel de edición protegido (Seguimiento_Visitas_Editor.xlsx)...")
+  
+  df_excel_export <- df_visitas_updated %>%
+    select(
+      COD_HDA_KEY = cod_hda_key,
+      FECHA_VISITA = fecha_visita,
+      RADICADO = radicado,
+      HDA_LABEL = hda_label,
+      INGENIO_FULL = ingenio_full,
+      MUNICIPIO = municipio,
+      CORREGIMIENTO = corregimiento,
+      COORDENADAS = coordenadas,
+      CATEGORIA_ALERTA = categoria_alerta,
+      BOLETIN_N = boletin_n
+    ) %>%
+    mutate(
+      FECHA_VISITA = ifelse(is.na(FECHA_VISITA), "", as.character(FECHA_VISITA)),
+      RADICADO = ifelse(is.na(RADICADO), "", as.character(RADICADO))
+    )
+  
+  wb <- openxlsx::createWorkbook()
+  sheet_name <- "Registro_Visitas"
+  openxlsx::addWorksheet(wb, sheet_name)
+  
+  # Escribir encabezados y datos
+  openxlsx::writeData(wb, sheet_name, df_excel_export)
+  
+  # Crear estilo desbloqueado para fecha_visita y radicado
+  unlocked_style <- openxlsx::createStyle(locked = FALSE)
+  
+  # Aplicar estilo desbloqueado a las columnas 2 (FECHA_VISITA) y 3 (RADICADO)
+  # Rango de filas: desde la fila 2 (debajo de la cabecera) hasta el número de filas de datos
+  n_filas <- nrow(df_excel_export)
+  if (n_filas > 0) {
+    openxlsx::addStyle(wb, sheet_name, style = unlocked_style, 
+                       rows = 2:(n_filas + 1), cols = c(2, 3), 
+                       gridExpand = TRUE, stack = TRUE)
+  }
+  
+  # Proteger la hoja de cálculo con contraseña
+  openxlsx::protectWorksheet(wb, sheet_name, protect = TRUE, 
+                             password = "CVC_SATICA_2026")
+  
+  # Guardar el Excel en el workspace root para OneDrive
+  openxlsx::saveWorkbook(wb, "Seguimiento_Visitas_Editor.xlsx", overwrite = TRUE)
+  message("✅ Seguimiento_Visitas_Editor.xlsx generado exitosamente con protección.")
+}, error = function(e) {
+  message("⚠️ Error al generar Seguimiento_Visitas_Editor.xlsx: ", e$message)
+})
 
 # ==============================================================================
 # B. EXCEL DE SEGUIMIENTO (XLSX)
