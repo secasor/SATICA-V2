@@ -117,7 +117,16 @@ cargar_rds_hibrido <- function(local_path, url_path) {
     if (!is.null(res)) return(res)
   }
   message("🌐 Descargando desde internet: ", url_path)
-  readRDS(url(url_path))
+  temp_file <- tempfile(fileext = ".rds")
+  tryCatch({
+    download.file(url_path, temp_file, mode = "wb", quiet = TRUE)
+    res <- readRDS(temp_file)
+    unlink(temp_file)
+    return(res)
+  }, error = function(e) {
+    if (file.exists(temp_file)) unlink(temp_file)
+    stop("Error descargando RDS: ", e$message)
+  })
 }
 
 # --- 2. CARGA PRINCIPAL: GEOMETRÍA + DATOS MAESTROS ---
@@ -176,7 +185,15 @@ tryCatch({
     load(cache_rest_path, envir = .GlobalEnv)
   } else if (.ON_CLOUD) {
     message("🌐 CLOUD CACHE: Descargando Base Geoespacial Estática desde Portal de GitHub Pages...")
-    DATOS_ESPACIALES_BASE <- readRDS(url("https://secasor.github.io/SATICA-V2/data_estatica/GEO_CACHE_SATICA.rds"))
+    temp_geo <- tempfile(fileext = ".rds")
+    tryCatch({
+      download.file("https://secasor.github.io/SATICA-V2/data_estatica/GEO_CACHE_SATICA.rds", temp_geo, mode = "wb", quiet = TRUE)
+      DATOS_ESPACIALES_BASE <- readRDS(temp_geo)
+      unlink(temp_geo)
+    }, error = function(e) {
+      if (file.exists(temp_geo)) unlink(temp_geo)
+      stop("Error descargando geo cache: ", e$message)
+    })
     
     # Cargar archivo .RData desde la URL descargándolo a un archivo temporal
     temp_rest <- tempfile(fileext = ".RData")
