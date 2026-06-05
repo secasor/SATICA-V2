@@ -444,8 +444,8 @@ tryCatch({
       filter(cod_hda_key %in% orphans_keys) %>%
       group_by(cod_hda_key) %>%
       summarise(
-        Nombre_Reporte = coalesce(first(na.omit(hda_nombre)), paste("Hda", cod_hda_key)),
-        Ingenio = mapear_ingenio(substr(cod_hda_key, 1, 2)),
+        Nombre_Reporte = coalesce(first(na.omit(hda_nombre)), paste("Hda", first(cod_hda_key))),
+        Ingenio = mapear_ingenio(substr(first(cod_hda_key), 1, 2)),
         Municipio_Excel = coalesce(first(na.omit(municipio)), "SIN MUNICIPIO"),
         Correg_Excel = coalesce(first(na.omit(corregimiento)), "SIN DATO"),
         n_registros = max(N_EVENTOS_HDA, na.rm = TRUE),
