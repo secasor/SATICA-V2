@@ -8,7 +8,7 @@ paquetes_requeridos <- c(
   "shiny", "bs4Dash", "leaflet", "sf", "dplyr", "tidyr", "lubridate",
   "stringr", "stringi", "readxl", "readr", "openxlsx", "DT",
   "shinyWidgets", "janitor", "lwgeom", "httr", "rmarkdown", 
-  "pacman", "purrr", "xgboost", "Matrix", "reticulate", "rgee"
+  "pacman", "purrr", "xgboost", "Matrix", "reticulate", "rgee", "plotly"
 )
 
 # Identificar cuáles faltan

@@ -256,25 +256,7 @@ server <- function(input, output, session) {
           TRUE ~ "RECURRENTE"
         ),
         DIFF_MESES = if_else(ESTADO_RADAR == "RECURRENTE", (DIAS_DESDE_ULT - CICLO_DIAS) / 30.44, NA_real_),
-        RIESGO = case_when(
-          ESTADO_RADAR != "RECURRENTE" ~ "BAJO",
-          DIFF_MESES < -3 ~ "BAJO",
-          DIFF_MESES >= -3 & DIFF_MESES < -2 ~ "OBSERVACION",
-          DIFF_MESES >= -2 & DIFF_MESES < -1 ~ "ALTO",
-          DIFF_MESES >= -1 & DIFF_MESES <= 1 ~ "CRITICO",
-          DIFF_MESES > 1 & DIFF_MESES <= 2 ~ "ALTO",
-          DIFF_MESES > 2 & DIFF_MESES <= 3 ~ "OBSERVACION",
-          DIFF_MESES > 3 ~ "MITIGADO",
-          TRUE ~ "BAJO"
-        ),
-        COL = case_when(
-          RIESGO == "BAJO" ~ "#27ae60",
-          RIESGO == "OBSERVACION" ~ "#f1c40f",
-          RIESGO == "ALTO" ~ "#e67e22",
-          RIESGO == "CRITICO" ~ "#c0392b",
-          RIESGO == "MITIGADO" ~ "#7f8c8d",
-          TRUE ~ "#27ae60"
-        ),
+
         TXT_CICLO = sapply(CICLO_DIAS, function(dias) {
           if (is.na(dias) || dias == 0) return("Sin Historial")
           if (dias < 60) return(paste(round(dias), "d\u00edas"))
@@ -809,7 +791,7 @@ server <- function(input, output, session) {
     valueBox(total, "Alertas Din\u00e1micas (GOES-16 1h)", icon = icon("satellite-dish"), color = "warning")
   })
   
-  output$plot_riesgo_ingenio <- renderPlot({
+  output$plot_riesgo_ingenio <- plotly::renderPlotly({
     req(datos_r())
     df_plot <- datos_r() %>%
       sf::st_drop_geometry() %>%
@@ -819,15 +801,8 @@ server <- function(input, output, session) {
         RIESGO = factor(RIESGO, levels = c("CRITICO", "ALTO", "OBSERVACION", "BAJO", "MITIGADO"))
       )
     
-    ggplot(df_plot, aes(x = INGENIO_FULL, y = Cant_Farms, fill = RIESGO)) +
+    p <- ggplot(df_plot, aes(x = INGENIO_FULL, y = Cant_Farms, fill = RIESGO)) +
       geom_col(color = "black", width = 0.6) +
-      geom_text(
-        aes(label = Cant_Farms), 
-        position = position_stack(vjust = 0.5), 
-        size = 4, 
-        fontface = "bold", 
-        color = "white"
-      ) +
       scale_fill_manual(values = c(
         "CRITICO" = "#c0392b",
         "ALTO" = "#e67e22",
@@ -842,13 +817,21 @@ server <- function(input, output, session) {
       ) +
       theme_minimal() +
       theme(
-        axis.text.x = element_text(size = 12, angle = 30, hjust = 1, face = "bold"),
-        axis.text.y = element_text(size = 12),
-        axis.title = element_text(size = 14, face = "bold"),
-        legend.title = element_text(size = 12, face = "bold"),
-        legend.text = element_text(size = 11),
+        axis.text.x = element_text(size = 10, angle = 30, hjust = 1, face = "bold"),
+        axis.text.y = element_text(size = 10),
+        axis.title = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size = 10, face = "bold"),
+        legend.text = element_text(size = 9),
         plot.background = element_rect(fill = "white", color = NA),
         panel.background = element_rect(fill = "white", color = NA)
+      )
+    
+    plotly::ggplotly(p) %>% 
+      plotly::layout(
+        barmode = 'stack',
+        paper_bgcolor = 'rgba(0,0,0,0)',
+        plot_bgcolor = 'rgba(0,0,0,0)',
+        font = list(color = '#f8fafc', family = 'Outfit')
       )
   })
   

@@ -18,6 +18,7 @@ library(lwgeom)
 library(readr)
 library(rmarkdown)
 library(openxlsx)
+library(plotly)
 
 # =========================================================================
 # 🔄 DETECCIÓN DE ENTORNO Y SMART SYNC — ACTUALIZACIÓN AUTOMÁTICA

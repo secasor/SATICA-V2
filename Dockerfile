@@ -31,7 +31,7 @@ WORKDIR /app
 RUN R -e 'options(repos = c(RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest", CRAN = "https://cloud.r-project.org"))'
 
 # 4. Instalar paquetes de R requeridos para SATICA
-RUN R -e 'install.packages(c("shiny", "bs4Dash", "dplyr", "tidyr", "leaflet", "sf", "readxl", "lubridate", "DT", "shinyWidgets", "stringr", "janitor", "stringi", "lwgeom", "readr", "rmarkdown", "openxlsx", "ggplot2", "visNetwork", "httr", "pacman", "purrr", "xgboost", "Matrix", "reticulate", "rgee"), repos="https://packagemanager.posit.co/cran/__linux__/jammy/latest")'
+RUN R -e 'install.packages(c("shiny", "bs4Dash", "dplyr", "tidyr", "leaflet", "sf", "readxl", "lubridate", "DT", "shinyWidgets", "stringr", "janitor", "stringi", "lwgeom", "readr", "rmarkdown", "openxlsx", "ggplot2", "visNetwork", "httr", "pacman", "purrr", "xgboost", "Matrix", "reticulate", "rgee", "plotly"), repos="https://packagemanager.posit.co/cran/__linux__/jammy/latest")'
 
 # 5. Copiar todo el código fuente de SATICA al contenedor
 COPY . /app

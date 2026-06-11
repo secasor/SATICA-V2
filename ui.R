@@ -406,7 +406,7 @@ ui <- dashboardPage(
           box(
             width = 12, title = "Distribución de Riesgo Actual por Ingenio Azucarero",
             status = "success", solidHeader = TRUE,
-            plotOutput("plot_riesgo_ingenio", height = "400px"),
+            plotlyOutput("plot_riesgo_ingenio", height = "400px"),
             div(
               style = "text-align: right; margin-top: 15px;",
               downloadButton("dl_plot_riesgo_ingenio", "Descargar Gráfico PNG",
