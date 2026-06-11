@@ -385,7 +385,7 @@ master_final <- master_final %>%
     Satelite_Fuego    = FALSE,
     GOES_Fuego        = FALSE,
     Estado_GOES       = "Normal",
-    NDVI              = 0.5,
+    NDVI              = as.numeric(NA),
     Alerta_Combustion = "Sin Datos"
   )
 
@@ -426,7 +426,7 @@ master_final <- master_final %>%
     Satelite_Fuego    = coalesce(Satelite_Fuego, FALSE),
     GOES_Fuego        = coalesce(GOES_Fuego, FALSE),
     Estado_GOES       = coalesce(Estado_GOES, "Normal"),
-    NDVI              = coalesce(NDVI, 0.5),
+    NDVI              = as.numeric(NDVI),
     Alerta_Combustion = coalesce(Alerta_Combustion, "Sin Datos")
   )
 
@@ -553,13 +553,13 @@ master_final <- master_final %>%
       GOES_Fuego     == TRUE ~ "CRITICO", # ¡Fuego dinámico capturado por GOES-16!
       
       # NDVI húmedo (vegetación viva y verde descarta riesgo)
-      NDVI > umbral_ndvi ~ "BAJO",
+      !is.na(NDVI) & NDVI > umbral_ndvi ~ "BAJO",
       
       # Overdue pero mitigado (alta prob Gumbel, sin fuego y aún verde)
-      prob_gumbel > 0.90 & NDVI > 0.20 ~ "MITIGADO",
+      prob_gumbel > 0.90 & !is.na(NDVI) & NDVI > 0.20 ~ "MITIGADO",
       
       # Alertas preventivas calibradas
-      prob_gumbel >= 0.80 & NDVI <= 0.20 ~ "CRITICO",
+      prob_gumbel >= 0.80 & (is.na(NDVI) | NDVI <= 0.20) ~ "CRITICO",
       prob_gumbel >= 0.60 & vpd_suerte >= 1.8 ~ "ALTO",
       prob_gumbel >= 0.30 ~ "OBSERVACION",
       
