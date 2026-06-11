@@ -6,10 +6,190 @@
 # ==============================================================================
 
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(sf, dplyr, purrr, readxl, janitor, lubridate, stringi, stringr)
+pacman::p_load(sf, dplyr, purrr, readxl, janitor, lubridate, stringi, stringr, httr, jsonlite)
+
+# --- 1.1. ESTIMACIÓN DE PARÁMETROS GUMBEL CON SHRINKAGE BAYESIANO ---
+estimar_gumbel_suerte <- function(fechas, n_eventos) {
+  mu_reg <- 365.0   # Prior regional: retorno típico de 1 año
+  beta_reg <- 180.0 # Prior regional: escala de variación de 6 meses
+  
+  if (n_eventos <= 1) {
+    return(list(mu = mu_reg, beta = beta_reg))
+  }
+  
+  # Calcular intervalos en días
+  dias_intervalos <- as.numeric(diff(sort(unique(fechas))))
+  dias_intervalos <- dias_intervalos[dias_intervalos > 5] # Filtrar reincidencia inmediata
+  
+  if (length(dias_intervalos) == 0) {
+    return(list(mu = mu_reg, beta = beta_reg))
+  }
+  
+  mean_obs <- mean(dias_intervalos)
+  sd_obs <- ifelse(length(dias_intervalos) > 1, sd(dias_intervalos), beta_reg)
+  
+  # Estimar parámetros observados mediante método de momentos
+  beta_obs <- (sd_obs * sqrt(6)) / pi
+  mu_obs <- mean_obs - (0.5772 * beta_obs)
+  
+  # Shrinkage (mezclar con prior regional según cantidad de datos)
+  weight_obs <- min(length(dias_intervalos) / 5, 1.0)
+  weight_reg <- 1 - weight_obs
+  
+  mu_final <- (mu_obs * weight_obs) + (mu_reg * weight_reg)
+  beta_final <- (beta_obs * weight_obs) + (beta_reg * weight_reg)
+  
+  # Acotar límites lógicos
+  mu_final <- max(pmin(mu_final, 1500), 90)
+  beta_final <- max(pmin(beta_final, 500), 30)
+  
+  return(list(mu = mu_final, beta = beta_final))
+}
+
+calcular_prob_gumbel <- function(t_dias, mu, beta, factor_enso = 1.0) {
+  # Retorna la probabilidad acumulada de Gumbel (F_t)
+  # El factor ENSO (ej. 1.30 en El Niño) acelera temporalmente la desecación del combustible
+  t_ajustado <- t_dias * factor_enso
+  F_t <- exp(-exp(-(t_ajustado - mu) / beta))
+  return(max(min(F_t, 1.0), 0.0))
+}
+
+# --- 1.2. DESCARGA DEL ÍNDICE ONI (NOAA) ---
+obtener_factor_enso <- function() {
+  url_oni <- "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt"
+  cache_oni_path <- "data_master/cache_oni.rds"
+  
+  if (file.exists(cache_oni_path)) {
+    info_cache <- readRDS(cache_oni_path)
+    if (as.numeric(difftime(Sys.Date(), info_cache$fecha, units = "days")) < 15) {
+      message(sprintf("  🌀 ENSO (Caché): ONI = %.2f | Factor = %.2f", info_cache$oni, info_cache$factor))
+      return(info_cache)
+    }
+  }
+  
+  message("  🌐 Conectando a NOAA CPC para descargar Índice ONI...")
+  res <- tryCatch({ httr::GET(url_oni, httr::timeout(10)) }, error = function(e) NULL)
+  if (!is.null(res) && httr::status_code(res) == 200) {
+    txt_content <- httr::content(res, "text", encoding = "UTF-8")
+    lines <- readLines(textConnection(txt_content), warn = FALSE)
+    lines_clean <- lines[nzchar(trimws(lines))]
+    last_line <- tail(lines_clean, 1)
+    parts <- strsplit(trimws(last_line), "\\s+")[[1]]
+    
+    if (length(parts) >= 3) {
+      anom_val <- as.numeric(parts[3])
+      if (!is.na(anom_val)) {
+        factor_enso <- case_when(
+          anom_val >= 0.5  ~ 1.30,  # El Niño (Acelera ciclo)
+          anom_val <= -0.5 ~ 0.60,  # La Niña (Desacelera ciclo)
+          TRUE             ~ 1.00   # Neutro
+        )
+        info_enso <- list(fecha = Sys.Date(), oni = anom_val, factor = factor_enso)
+        if(!dir.exists("data_master")) dir.create("data_master")
+        saveRDS(info_enso, cache_oni_path)
+        message(sprintf("  ✅ NOAA ONI Descargado: ONI = %.2f | Factor ENSO = %.2f", anom_val, factor_enso))
+        return(info_enso)
+      }
+    }
+  }
+  message("  ⚠️ No se pudo descargar NOAA ONI. Usando factor neutral (1.00).")
+  return(list(fecha = Sys.Date(), oni = 0.0, factor = 1.00))
+}
+
+# --- 1.3. DESCARGA METEOROLÓGICA OPEN-METEO (ERA5-Land VPD) ---
+obtener_vpd_quincenal <- function() {
+  cache_vpd_path <- "data_master/cache_vpd.rds"
+  
+  if (file.exists(cache_vpd_path)) {
+    info_cache <- readRDS(cache_vpd_path)
+    if (as.numeric(difftime(Sys.Date(), info_cache$fecha, units = "days")) < 1) {
+      message("  🌡️ VPD (Caché): Usando datos de evaporación del día de hoy.")
+      return(info_cache$data)
+    }
+  }
+  
+  message("  🌐 Consultando Open-Meteo API (ERA5-Land reanálisis) para VPD...")
+  municipios_gps <- data.frame(
+    municipio = c("PALMIRA", "FLORIDA", "CANDELARIA", "PRADERA", "EL CERRITO"),
+    lat = c(3.5394, 3.3222, 3.4089, 3.4214, 3.6847),
+    lon = c(-76.3036, -76.2361, -76.3475, -76.2442, -76.3131),
+    stringsAsFactors = FALSE
+  )
+  
+  vpd_resumen <- list()
+  for (i in 1:nrow(municipios_gps)) {
+    m_name <- municipios_gps$municipio[i]
+    m_lat <- municipios_gps$lat[i]
+    m_lon <- municipios_gps$lon[i]
+    
+    start_date <- Sys.Date() - 15
+    end_date <- Sys.Date() - 1
+    
+    url_api <- sprintf(
+      "https://archive-api.open-meteo.com/v1/archive?latitude=%.4f&longitude=%.4f&start_date=%s&end_date=%s&hourly=temperature_2m,relative_humidity_2m&timezone=auto",
+      m_lat, m_lon, start_date, end_date
+    )
+    
+    res <- tryCatch({ httr::GET(url_api, httr::timeout(10)) }, error = function(e) NULL)
+    if (!is.null(res) && httr::status_code(res) == 200) {
+      data_json <- jsonlite::fromJSON(httr::content(res, "text", encoding = "UTF-8"))
+      
+      temp <- data_json$hourly$temperature_2m
+      rh <- data_json$hourly$relative_humidity_2m
+      
+      # Tetens formula para presión de vapor de saturación (kPa)
+      es <- 0.61078 * exp((17.27 * temp) / (temp + 237.3))
+      vpd <- es * (1 - (rh / 100))
+      
+      n_dias <- length(vpd) / 24
+      max_vpds <- sapply(1:n_dias, function(d) {
+        idx <- ((d-1)*24 + 1):(d*24)
+        max(vpd[idx], na.rm = TRUE)
+      })
+      
+      mean_max_vpd <- mean(max_vpds, na.rm = TRUE)
+      vpd_resumen[[m_name]] <- mean_max_vpd
+      message(sprintf("    -> %s: VPD Máx Promedio (15d) = %.2f kPa", m_name, mean_max_vpd))
+    } else {
+      vpd_resumen[[m_name]] <- 1.50 # Fallback moderado
+    }
+    Sys.sleep(0.1)
+  }
+  
+  df_vpd <- data.frame(
+    municipio = names(vpd_resumen),
+    vpd_15d = unlist(vpd_resumen),
+    stringsAsFactors = FALSE
+  )
+  
+  if(!dir.exists("data_master")) dir.create("data_master")
+  saveRDS(list(fecha = Sys.Date(), data = df_vpd), cache_vpd_path)
+  return(df_vpd)
+}
+
+# --- 1.4. OBTENER MUNICIPIO MÁS CERCANO PARA DATOS CLIMÁTICOS ---
+obtener_municipio_mas_cercano <- function(lats, lons) {
+  municipios_gps <- data.frame(
+    municipio = c("PALMIRA", "FLORIDA", "CANDELARIA", "PRADERA", "EL CERRITO"),
+    lat = c(3.5394, 3.3222, 3.4089, 3.4214, 3.6847),
+    lon = c(-76.3036, -76.2361, -76.3475, -76.2442, -76.3131),
+    stringsAsFactors = FALSE
+  )
+  
+  sapply(seq_along(lats), function(i) {
+    if (is.na(lats[i]) || is.na(lons[i])) return("PALMIRA") # Default fallback
+    distancias <- (municipios_gps$lat - lats[i])^2 + (municipios_gps$lon - lons[i])^2
+    municipios_gps$municipio[which.min(distancias)]
+  })
+}
 
 message("🚀 INICIANDO MOTOR TÁCTICO V2.4 - MODO AUTO-REPARACIÓN CON BLINDAJE...")
 sf_use_s2(FALSE) # Desactivar geometría esférica para cálculos planos rápidos
+
+# --- CONSULTA DE DATOS CLIMÁTICOS Y GLOBALES (ENSO + VPD) ---
+enso_info <- obtener_factor_enso()
+factor_enso <- enso_info$factor
+df_vpd <- obtener_vpd_quincenal()
 
 # --- 1. FUNCIONES DE LIMPIEZA Y FORMATO ---
 limpiar_texto <- function(x) {
@@ -141,15 +321,18 @@ frecuencia_suerte <- hist_prep %>%
     .groups = "drop"
   )
 
-# B. FRECUENCIA PREDIAL (INTERVALO ENTRE CUALQUIER EVENTO EN LA HACIENDA)
+# B. FRECUENCIA PREDIAL (INTERVALO ENTRE CUALQUIER EVENTO EN LA HACIENDA CON GUMBEL)
 frecuencia_hacienda <- hist_prep %>%
+  select(cod_hda_key, FECHA) %>%
+  distinct() %>% # Elimina duplicados de incendios reportados el mismo día en la misma hacienda
   arrange(cod_hda_key, FECHA) %>%
   group_by(cod_hda_key) %>%
   summarise(
     FECHA_ULT_I_HDA = max(FECHA, na.rm = TRUE),
     N_EVENTOS_HDA = n(),
-    # Esta es la métrica clave sugerida por el usuario: cada cuánto ocurre UN incendio en el predio
-    FRECUENCIA_HDA_DIAS = ifelse(n() > 1, as.numeric(mean(diff(FECHA))), 365),
+    mu_hda = estimar_gumbel_suerte(FECHA, n())$mu,
+    beta_hda = estimar_gumbel_suerte(FECHA, n())$beta,
+    FRECUENCIA_HDA_DIAS = mu_hda, # Mapeado a la localización del ciclo para retrocompatibilidad
     .groups = "drop"
   )
 
@@ -333,6 +516,16 @@ if(!is.null(modelo_v9) && !is.null(diccionario_v9) && !is.null(matriz_distancias
 # ==============================================================================
 # --- 5.7. CRUCE HÍBRIDO FINAL (RESULTADO 98% PRECISIÓN) ---
 # ==============================================================================
+# Asignar a cada suerte su VPD según la coordenada más cercana a los 5 municipios
+master_final <- master_final %>%
+  mutate(
+    municipio_clima = obtener_municipio_mas_cercano(lat, lon)
+  ) %>%
+  left_join(df_vpd, by = c("municipio_clima" = "municipio")) %>%
+  mutate(
+    vpd_suerte = coalesce(vpd_15d, 1.50)
+  )
+
 # Recalculamos FECHA ESTIMADA y RIESGOS impactados por la nueva inteligencia
 master_final <- master_final %>%
   mutate(
@@ -340,20 +533,36 @@ master_final <- master_final %>%
     DIFF_MESES = as.numeric(Sys.Date() - FECHA_ESTIMADA) / 30.44,
     DIFF_HDA_MESES = as.numeric(Sys.Date() - (FECHA_ULT_I_HDA + FRECUENCIA_HDA_DIAS)) / 30.44,
     
-    # [LÓGICA HÍBRIDA MAESTRA]:
-    # Combina Heurística (Frecuencia) + ML (XGBoost V9) + Flagrancia (Satélite)
+    # Calcular probabilidad acumulada de Gumbel (F_t)
+    prob_gumbel = mapply(function(t, m, b) {
+      if (is.na(t) || is.na(m) || is.na(b)) return(0.0)
+      calcular_prob_gumbel(t, m, b, factor_enso = factor_enso)
+    }, as.numeric(Sys.Date() - FECHA_ULT_I_HDA), mu_hda, beta_hda),
+    
+    # Umbral dinámico de descarte de NDVI según ENSO
+    umbral_ndvi = case_when(
+      factor_enso == 1.30 ~ 0.20,  # El Niño
+      factor_enso == 0.60 ~ 0.35,  # La Niña
+      TRUE                ~ 0.30   # Neutro
+    ),
+    
+    # [LÓGICA HÍBRIDA MAESTRA V2.4]:
+    # Combina Gumbel + Satélites en vivo + NDWI/NDVI en vivo + Open-Meteo VPD + Ajuste ENSO (NOAA)
     riesgo = case_when(
       Satelite_Fuego == TRUE ~ "CRITICO", # ¡Está ardiendo ahora mismo!
       GOES_Fuego     == TRUE ~ "CRITICO", # ¡Fuego dinámico capturado por GOES-16!
-      Alerta_Combustion == "ALTA (Extrema Resequedad)" ~ "CRITICO", # Pólvora seca
-      is.na(FECHA_ULT_I_HDA) ~ "BAJO",
-      DIFF_HDA_MESES < -3 ~ "BAJO",
-      DIFF_HDA_MESES >= -3 & DIFF_HDA_MESES < -2 ~ "OBSERVACION",
-      DIFF_HDA_MESES >= -2 & DIFF_HDA_MESES < -1 ~ "ALTO",
-      DIFF_HDA_MESES >= -1 & DIFF_HDA_MESES <= 1 ~ "CRITICO",
-      DIFF_HDA_MESES > 1 & DIFF_HDA_MESES <= 2 ~ "ALTO",
-      DIFF_HDA_MESES > 2 & DIFF_HDA_MESES <= 3 ~ "OBSERVACION",
-      DIFF_HDA_MESES > 3 ~ "MITIGADO",
+      
+      # NDVI húmedo (vegetación viva y verde descarta riesgo)
+      NDVI > umbral_ndvi ~ "BAJO",
+      
+      # Overdue pero mitigado (alta prob Gumbel, sin fuego y aún verde)
+      prob_gumbel > 0.90 & NDVI > 0.20 ~ "MITIGADO",
+      
+      # Alertas preventivas calibradas
+      prob_gumbel >= 0.80 & NDVI <= 0.20 ~ "CRITICO",
+      prob_gumbel >= 0.60 & vpd_suerte >= 1.8 ~ "ALTO",
+      prob_gumbel >= 0.30 ~ "OBSERVACION",
+      
       TRUE ~ "BAJO"
     ),
     col = case_when(
@@ -422,10 +631,12 @@ message("Municipios procesados: ", paste(unique(master_final$municipio), collaps
 message("Hacienda Ejemplo: ", head(master_final$hda_nombre, 1), " en ", head(master_final$municipio, 1))
 message("==========================================================\n")
 
-# --- GENERACIÓN DE ARCHIVOS DE DESCARGA ESTÁTICOS ---
+# --- GENERACION DE ARCHIVOS DE DESCARGA ESTATICOS ---
 if (file.exists("R/generar_descargas_static.R")) {
   tryCatch({
-    source("R/generar_descargas_static.R", encoding = "UTF-8")
+    rscript_path <- file.path(R.home("bin"), "Rscript")
+    if (.Platform$OS.type == "windows") rscript_path <- paste0(rscript_path, ".exe")
+    system2(rscript_path, args = c("-e", "source('R/generar_descargas_static.R',encoding='UTF-8')"))
   }, error = function(e) {
     message("[ERROR] Error al generar descargas estaticas: ", e$message)
   })

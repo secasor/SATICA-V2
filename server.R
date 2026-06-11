@@ -7,7 +7,6 @@
 library(ggplot2)
 library(lubridate)
 library(janitor)
-library(visNetwork)
 library(dplyr)
 library(sf)
 # [BLINDAJE 2: Eliminda la dependencia de readxl en vivo]
@@ -810,41 +809,92 @@ server <- function(input, output, session) {
     valueBox(total, "Alertas Din\u00e1micas (GOES-16 1h)", icon = icon("satellite-dish"), color = "warning")
   })
   
-  output$grafo_riesgo <- visNetwork::renderVisNetwork({
+  output$plot_riesgo_ingenio <- renderPlot({
     req(datos_r())
-    datos_grafos <- datos_r() %>% sf::st_drop_geometry()
-    
-    nodos_hda <- datos_grafos %>%
+    df_plot <- datos_r() %>%
+      sf::st_drop_geometry() %>%
+      group_by(INGENIO_FULL, RIESGO) %>%
+      summarise(Cant_Farms = n_distinct(COD_HDA_KEY), .groups = "drop") %>%
       mutate(
-        id = COD_HDA_KEY,
-        label = HDA_LABEL,
-        group = INGENIO_FULL,
-        title = paste0("<b>Hacienda:</b> ", HDA_LABEL, "<br><b>Riesgo:</b> ", RIESGO),
-        color = case_when(
-          RIESGO == "CRITICO" ~ "#c0392b",
-          RIESGO == "ALTO" ~ "#e67e22",
-          RIESGO == "OBSERVACION" ~ "#f1c40f",
-          RIESGO == "MITIGADO" ~ "#7f8c8d",
-          TRUE ~ "#27ae60"
-        ),
-        shape = "dot", size = 20
-      ) %>% select(id, label, group, title, color, shape, size)
+        RIESGO = factor(RIESGO, levels = c("CRITICO", "ALTO", "OBSERVACION", "BAJO", "MITIGADO"))
+      )
     
-    nodos_ing <- datos_grafos %>%
-      distinct(INGENIO_FULL) %>%
-      mutate(
-        id = INGENIO_FULL, label = INGENIO_FULL,
-        group = "INGENIO", title = "Ingenio Azucarero",
-        color = "#2c3e50", shape = "square", size = 40
-      ) %>% select(id, label, group, title, color, shape, size)
-    
-    todos_nodos <- bind_rows(nodos_hda, nodos_ing)
-    enlaces <- datos_grafos %>% mutate(from = INGENIO_FULL, to = COD_HDA_KEY) %>% select(from, to)
-    
-    visNetwork::visNetwork(todos_nodos, enlaces) %>%
-      visNetwork::visOptions(highlightNearest = list(enabled = TRUE, degree = 1, hover = TRUE), nodesIdSelection = TRUE) %>%
-      visNetwork::visPhysics(stabilization = FALSE)
+    ggplot(df_plot, aes(x = INGENIO_FULL, y = Cant_Farms, fill = RIESGO)) +
+      geom_col(color = "black", width = 0.6) +
+      geom_text(
+        aes(label = Cant_Farms), 
+        position = position_stack(vjust = 0.5), 
+        size = 4, 
+        fontface = "bold", 
+        color = "white"
+      ) +
+      scale_fill_manual(values = c(
+        "CRITICO" = "#c0392b",
+        "ALTO" = "#e67e22",
+        "OBSERVACION" = "#f1c40f",
+        "BAJO" = "#27ae60",
+        "MITIGADO" = "#7f8c8d"
+      )) +
+      labs(
+        x = "Ingenio Azucarero",
+        y = "Cantidad de Haciendas",
+        fill = "Nivel de Riesgo"
+      ) +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(size = 12, angle = 30, hjust = 1, face = "bold"),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 11),
+        plot.background = element_rect(fill = "white", color = NA),
+        panel.background = element_rect(fill = "white", color = NA)
+      )
   })
+  
+  output$dl_plot_riesgo_ingenio <- downloadHandler(
+    filename = function() { paste0("SATICA_Riesgo_Ingenio_", Sys.Date(), ".png") },
+    content = function(file) {
+      p <- ggplot(datos_r() %>%
+                   sf::st_drop_geometry() %>%
+                   group_by(INGENIO_FULL, RIESGO) %>%
+                   summarise(Cant_Farms = n_distinct(COD_HDA_KEY), .groups = "drop") %>%
+                   mutate(
+                     RIESGO = factor(RIESGO, levels = c("CRITICO", "ALTO", "OBSERVACION", "BAJO", "MITIGADO"))
+                   ), aes(x = INGENIO_FULL, y = Cant_Farms, fill = RIESGO)) +
+        geom_col(color = "black", width = 0.6) +
+        geom_text(
+          aes(label = Cant_Farms), 
+          position = position_stack(vjust = 0.5), 
+          size = 4, 
+          fontface = "bold", 
+          color = "white"
+        ) +
+        scale_fill_manual(values = c(
+          "CRITICO" = "#c0392b",
+          "ALTO" = "#e67e22",
+          "OBSERVACION" = "#f1c40f",
+          "BAJO" = "#27ae60",
+          "MITIGADO" = "#7f8c8d"
+        )) +
+        labs(
+          x = "Ingenio Azucarero",
+          y = "Cantidad de Haciendas",
+          fill = "Nivel de Riesgo"
+        ) +
+        theme_minimal() +
+        theme(
+          axis.text.x = element_text(size = 12, angle = 30, hjust = 1, face = "bold"),
+          axis.text.y = element_text(size = 12),
+          axis.title = element_text(size = 14, face = "bold"),
+          legend.title = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 11),
+          plot.background = element_rect(fill = "white", color = NA),
+          panel.background = element_rect(fill = "white", color = NA)
+        )
+      ggsave(file, plot = p, width = 10, height = 6, dpi = 300, bg = "white")
+    }
+  )
   
   # [BLINDAJE 1 Y 2 APLICADOS AL HISTORIAL DIN\u00c1MICO]
   # Extirpada la Bomba de Rendimiento: Ya no se lee 'reportes_cosecha/*.xlsx' en caliente

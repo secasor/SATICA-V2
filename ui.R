@@ -6,7 +6,6 @@ library(bs4Dash)
 library(leaflet)
 library(DT)
 library(shinyWidgets)
-library(visNetwork)
 
 # --- CSS personalizado con Estética Stitch/Google (Glassmorphism) ---
 css_custom <- "
@@ -174,10 +173,6 @@ ui <- dashboardPage(
       menuItem(
         tagList(menu_icon("#3498db"), "Radar Preventivo"),
         tabName = "dash", icon = NULL
-      ),
-      menuItem(
-        tagList(menu_icon("#9b59b6"), "Red de Riesgo"),
-        tabName = "grafo", icon = NULL
       ),
       menuItem(
         tagList(menu_icon("#27ae60"), "Analítica Histórica"),
@@ -406,6 +401,20 @@ ui <- dashboardPage(
               )
             )
           )
+        ),
+        fluidRow(
+          box(
+            width = 12, title = "Distribución de Riesgo Actual por Ingenio Azucarero",
+            status = "success", solidHeader = TRUE,
+            plotOutput("plot_riesgo_ingenio", height = "400px"),
+            div(
+              style = "text-align: right; margin-top: 15px;",
+              downloadButton("dl_plot_riesgo_ingenio", "Descargar Gráfico PNG",
+                icon = icon("camera"),
+                style = "font-size:12px;"
+              )
+            )
+          )
         )
       ),
 
@@ -414,17 +423,6 @@ ui <- dashboardPage(
         tabName = "repo",
         h3("Base de Datos Consolidada - DAR Suroriente"),
         DTOutput("tabla_completa")
-      ),
-
-      # ── RED DE RIESGO ───────────────────────────────────────────────────
-      tabItem(
-        tabName = "grafo",
-        h3("Análisis de Redes: Conectividad Hacienda - Ingenio"),
-        box(
-          width = 12, status = "primary", solidHeader = TRUE,
-          title = "Grafo Interactivo",
-          visNetwork::visNetworkOutput("grafo_riesgo", height = "700px")
-        )
       ),
 
       # ── SIN GEORREFERENCIACIÓN ──────────────────────────────────────────

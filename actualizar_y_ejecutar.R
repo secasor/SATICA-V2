@@ -9,7 +9,7 @@ message("🚀 INICIANDO ACTUALIZACIÓN INTEGRAL DE SATICA 2.0...")
 
 # 0. Verificación e Instalación de Dependencias Críticas
 if (file.exists("instalar_dependencias.R")) {
-  source("instalar_dependencias.R")
+  source("instalar_dependencias.R", encoding = "UTF-8")
 } else {
   message("⚠️ ADVERTENCIA: No se encontró 'instalar_dependencias.R'. Procure tener todas las librerías instaladas.")
 }
@@ -18,7 +18,7 @@ if (file.exists("instalar_dependencias.R")) {
 message("\n--- [1/3] Consultando Satélites NASA FIRMS (24h) ---")
 tryCatch(
   {
-    source("R/api_nasa_firms.R")
+    source("R/api_nasa_firms.R", encoding = "UTF-8")
   },
   error = function(e) {
     message("⚠️ Error en NASA FIRMS: ", e$message)
@@ -29,7 +29,7 @@ tryCatch(
 message("\n--- [1.5/3] Consultando Satélite GOES-16 (Anomalías Térmicas 1h) ---")
 tryCatch(
   {
-    source("R/api_goes16.R")
+    source("R/api_goes16.R", encoding = "UTF-8")
   },
   error = function(e) {
     message("⚠️ Error en GOES-16: ", e$message)
@@ -41,7 +41,7 @@ message("\n--- [2/3] Consultando Biomasa Sentinel-2 (Indices NDVI/NBR) ---")
 tryCatch(
   {
     if (requireNamespace("rgee", quietly = TRUE)) {
-      source("R/api_sentinel_rgee.R")
+      source("R/api_sentinel_rgee.R", encoding = "UTF-8")
     } else {
       message("ℹ️ Saltando Sentinel-2: El paquete 'rgee' no está instalado.")
     }
@@ -55,7 +55,7 @@ tryCatch(
 message("\n--- [3/3] Ejecutando Motor de Consolidación y Predicción ---")
 tryCatch(
   {
-    source("satica_engine.R")
+    source("satica_engine.R", encoding = "UTF-8")
   },
   error = function(e) {
     stop("❌ Error Fatal en el Motor SATICA: ", e$message)
